@@ -23,3 +23,8 @@ echo "ext {packageName = \"${packageName}\"}" >>../${dirName}/build.gradle
 echo "apply from: \"../SubModuleTamplate/sub_module.gradle\"" >>../${dirName}/build.gradle
 echo "dependencies {implementation fileTree(dir: \"libs\", include: [\"*.jar\"]) }" >>../${dirName}/build.gradle
 echo "include ':""${dirName}""'" >> ../settings.gradle
+cd ..
+pwd
+$(pwd)/gradlew config
+git add ./${dirName}/build.gradle
+git add ./${dirName}/src/*
