@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+ext {
+    packageName = "com.hoody.wificontrol"
+}
+apply plugin: "com.hoody.android.common"
+android {
+    compileSdkVersion rootProject.ext.android.CompileSdkVersion
+    buildToolsVersion rootProject.ext.android.BuildToolsVersion
+
+    defaultConfig {
+        applicationId "com.hoody.wificontrol"
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+        versionCode rootProject.ext.android.versionCode
+        versionName rootProject.ext.android.versionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    annotationProcessor project(':hoody_base:annotation_processor');
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation rootProject.ext.implementations.publicImplementations
+    rootProject.ext.implementations.publicImplementationsProject.each {
+        implementation project(it)
+    }
+    if (!rootProject.ext.android.isApplication){
+
+    }
+    testImplementation rootProject.ext.implementations.testImplementation
+    androidTestImplementation rootProject.ext.implementations.androidTestImplementation
+
+}

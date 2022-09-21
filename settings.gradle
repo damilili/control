@@ -1,0 +1,21 @@
+//pluginManagement {
+//    repositories {
+//        gradlePluginPortal()
+//        google()
+//        mavenCentral()
+//    }
+//}
+//dependencyResolutionManagement {
+//    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+//    repositories {
+//        google()
+//        mavenCentral()
+//    }
+//}
+rootProject.name = "WifiControl"
+include ':app'
+include ':sub_base'
+include ':hoody_base:gradle_plugin'
+include ':hoody_base:annotation_processor'
+include ':hoody_base:annotation'
+include ':hoody_base:common_base'

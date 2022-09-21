@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="kwqt_switchlayout_decider" type="id"/>
+
+    <!-- 主播推荐选择tag -->
+    <item type="id" name="view_tag_1"/>
+    <item type="id" name="view_tag_2"/>
+    <item type="id" name="view_tag_3"/>
+
+    <item type="id" name="recyclerview" />
+    <item type="id" name="gridview" />
+    <item type="id" name="webview" />
+    <item type="id" name="listview" />
+    <item type="id" name="stgv" />
+    <item type="id" name="scrollview" />
+</resources>

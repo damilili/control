@@ -1,0 +1,53 @@
+apply plugin: 'java-library'
+apply plugin: 'maven'
+apply plugin: 'groovy'
+apply plugin:'java-gradle-plugin'
+//指定方式1
+//group = 'com.hoody.tools.build'
+//version = '1.2.0'
+
+dependencies {
+//    implementation 'org.codehaus.groovy:groovy-all:2.4.15'
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.squareup:javapoet:1.9.0'
+    implementation 'com.android.tools.build:gradle:4.0.1'
+}
+
+//gradlePlugin {
+//    plugins {
+//        navigation {
+//            id = 'com.hoody.base'
+//            implementationClass = 'com.alibaba.android.arouter.register.launch.PluginLaunch'
+//        }
+//    }
+//}
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //提交到远程服务器：
+            // repository(url: "http://www.xxx.com/repos") {
+            //    authentication(userName: "admin", password: "admin")
+            // }
+            //本地的Maven地址设置为D:/repos
+            repository(url: uri('../repos'))
+            //指定方式2
+            //groupId ，自行定义
+            pom.groupId = 'com.hoody.android.tools.build'
+            //artifactId
+            pom.artifactId = 'gradle'
+            //插件版本号
+            pom.version = '1.0.1'
+        }
+    }
+}

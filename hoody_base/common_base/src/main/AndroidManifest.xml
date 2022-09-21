@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hoody.commonbase">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <application>
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
+        <service
+            android:name=".ipc.MainProcessService"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.hoody.base.MainProcessService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".ipc.SubProcessService"
+            android:enabled="true"
+            android:process="@string/subprocess_name">
+            <intent-filter>
+                <action android:name="com.hoody.base.SubProcessService" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".view.activity.DefaultContentActivity"
+            android:launchMode="singleTask" />
+    </application>
+
+</manifest>

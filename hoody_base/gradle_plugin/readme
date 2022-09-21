@@ -1,0 +1,141 @@
+# Gradle 插件制作
+ [参考样例:arouter gradle 插件 ](https://gitee.com/zhouxin1233/arouter/)
+
+## Gradle的插件的打包方式
+[参考链接](https://www.jianshu.com/p/3191c3955194)  
+Gradle的插件有三种打包方式，主要是按照复杂程度和可见性来划分：
+<table>
+<th> 方式 </th><th> 说明 </th>
+<tr><td>Build script</td><td>把插件写在 build.gradle 文件中，一般用于简单的逻辑，只在该 build.gradle 文件中可见</td></tr>
+<tr><td>buildSrc 项目</td><td>将插件源代码放在 rootProjectDir/buildSrc/src/main/groovy 中，只对该项目中可见，适用于逻辑较为复杂，但又不需要外部可见的插件，可以参见img-optimizer-gradle-plugin</td></tr>
+<tr><td> 独立项目 </td><td> 一个独立的 Groovy 和 Java 项目，可以把这个项目打包成 Jar 文件包，一个 Jar 文件包还可以包含多个插件入口，将文件包发布到托管平台上，供其他人使用。本文将着重介绍此类。</td></tr>
+</table>
+
+## Gradle的插件独立项目创建过程
+- 步骤1   
+创建普通的javalib module  
+```
+//插件工程可能需要用到的插件:    
+apply plugin: 'java-library' //生成jar  
+apply plugin: 'maven' //发布产物  
+//使用groovy语言编写
+apply plugin: 'groovy'  
+apply plugin: 'groovy-gradle-plugin'  
+//使用java语言编写
+apply plugin:'java-gradle-plugin'   
+
+//需要依赖的库
+implementation gradleApi() //使用当前版本Gradle提供的Api
+implementation localGroovy()//使用当前版本Gradle使用的groovy依赖
+implementation 'com.android.tools.build:gradle:4.0.1'//使用Android插件内容
+```
+- 步骤2  
+标记插件id和实现类
+
+具体的实现方式有两种：  
+
+方式一：
+创建下边这个文件，这个目录层级名称不能变，括号里的可以随意改变，括号里的是使用时对应的别名
+
+src/main/resources/META-INF/gradle-plugins/（com.hoody.testplugin）.properties
+并且在这个文件中加入以下信息：
+```
+implementation-class=plugin实现类全类名
+```
+
+方式二：
+在插件工程添加如下：
+```
+gradlePlugin {
+    plugins {
+        navigation {
+            id = 'com.hoody.testplugin'//插件id
+            implementationClass = 'com.alibaba.android.arouter.register.launch.PluginLaunch'//插件实现类
+        }
+    }
+}
+```
+- 步骤3  
+插件发布
+
+在插件工程添加如下：
+```
+//指定方式1
+//group = 'com.hoody.tools.build'
+//version = '1.2.0'
+//artifact ='abc'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //提交到远程服务器：
+            // repository(url: "http://www.xxx.com/repos") {
+            //    authentication(userName: "admin", password: "admin")
+            // }
+            //本地的Maven地址设置为D:/repos
+            repository(url: uri('../repos'))
+//指定方式二
+            //以下用于指定 classpath
+            //groupId ，自行定义
+            pom.groupId = 'com.hoody.android'
+            //artifactId
+            pom.artifactId = 'common'
+            //插件版本号
+            pom.version = '1.0.0'
+        }
+    }
+}
+```
+- 步骤4  
+插件使用
+
+根据com.hoody.testplugin.properties的名字（插件id）来使用此插件
+```
+apply plugin: "com.hoody.testplugin"//插件id
+```
+添加本地maven仓库
+```
+ buildscript {
+    repositories {
+        maven {
+            url './repos'
+        }
+    }
+    dependencies {
+	//发布的时候对应的groupId和artifactId以及version
+        classpath "com.hoody.android:common:1.0.1"
+    }
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---

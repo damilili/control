@@ -1,0 +1,82 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+import org.gradle.util.GFileUtils
+apply from: "config.gradle"
+buildscript {
+    repositories {
+        maven {
+            url './hoody_base/repos'
+        }
+        google()
+        jcenter()
+        mavenLocal()
+
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.0.1"
+        classpath "com.hoody.android.tools.build:gradle:1.0.1"
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        google()
+    }
+}
+def subprojectNum = 0
+subprojects {
+    afterEvaluate {
+        try {
+            if (it.plugins.hasPlugin('com.android.application')
+                    || it.plugins.hasPlugin('com.android.library')) {
+                android {
+                    resourcePrefix "${project.name}_"
+                    //def packageId = String.format('0x%02X', (rootProject.ext.packageIds.get(project.getName()) + 0x7f))
+                    //println 'packageId = ' + packageId
+                    def moduleId = String.format('0x%02X', (subprojectNum + 0x7f))
+                    println '---- moduleId : ' + moduleId
+                    defaultConfig {
+                        javaCompileOptions {
+                            annotationProcessorOptions {
+                                //apt 解析注解时用到这个参数
+                                println '---- packageName : ' + project.ext.packageName
+                                arguments = [moduleId   : moduleId,
+                                             packageName: project.ext.packageName]
+                            }
+                        }
+                    }
+
+                    buildTypes {
+                        release {
+                            buildConfigField("int", "MODULE_ID", "" + moduleId)
+                            rootProject.ext.globalBuildConfig.each {
+                                println it;
+                                buildConfigField("String", it.key, "\"" + it.value + "\"")
+                            }
+                        }
+                        debug {
+                            buildConfigField("int", "MODULE_ID", moduleId)
+                            rootProject.ext.globalBuildConfig.each {
+                                println it;
+                                buildConfigField("String", it.key, "\"" + it.value + "\"")
+                            }
+                        }
+                    }
+                    if (rootProject.ext.android.isApplication) {
+                        aaptOptions {
+                            aaptOptions.additionalParameters("--allow-reserved-package-id")
+                            aaptOptions.additionalParameters("--package-id", moduleId)
+                        }
+                    }
+                    subprojectNum++
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+    }
+}
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

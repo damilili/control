@@ -1,0 +1,153 @@
+if (rootProject.ext.android.isApplication) {
+    apply plugin: 'com.android.application'
+} else {
+    apply plugin: 'com.android.library'
+}
+apply plugin: "com.hoody.android.common"
+initModule()
+android {
+    compileSdkVersion rootProject.ext.android.CompileSdkVersion
+    buildToolsVersion rootProject.ext.android.BuildToolsVersion
+
+    defaultConfig {
+        if (rootProject.ext.android.isApplication) {
+            applicationId project.ext.packageName
+        }
+        minSdkVersion rootProject.ext.android.minSdkVersion
+        targetSdkVersion rootProject.ext.android.targetSdkVersion
+        versionCode rootProject.ext.android.versionCode
+        versionName rootProject.ext.android.versionName
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("boolean", "IS_APPLICATION", "" + rootProject.ext.android.isApplication)
+        }
+        debug {
+            buildConfigField("boolean", "IS_APPLICATION", "" + rootProject.ext.android.isApplication)
+        }
+    }
+    sourceSets {
+        main {
+            if (rootProject.ext.android.isApplication) {
+                java.srcDir 'src/asApp/java'
+                res.srcDir 'src/asApp/res'
+                manifest.srcFile 'src/asApp/AndroidManifest.xml'
+            } else {
+                java.srcDir 'src/asLib/java'
+                res.srcDir 'src/asLib/res'
+                manifest.srcFile 'src/asLib/AndroidManifest.xml'
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lintOptions {
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation rootProject.ext.implementations.publicImplementations
+    rootProject.ext.implementations.publicImplementationsProject.each {
+        implementation project(it)
+    }
+    annotationProcessor project(':hoody_base:annotation_processor');
+}
+
+
+void initModule() {
+    def libFile = new File(project.projectDir, 'libs')
+    if (!libFile.exists()) {
+        libFile.mkdirs()
+    }
+    def mainRootFile = new File(project.projectDir, '/src/main')
+    if (!mainRootFile.exists()) {
+        def javaRoot = new File(mainRootFile, 'java/' + project.ext.packageName.replace('.', '/'))
+        javaRoot.mkdirs()
+        new File(javaRoot, 'ModuleInitializer.java') << new File(rootProject.projectDir, "SubModuleTamplate/ModuleInitializer.java").text.replace('xxx.xxx.xxx', project.ext.packageName)
+        new File(mainRootFile, 'res/').mkdirs()
+    }
+    def appRootFile = new File(project.projectDir, '/src/asApp')
+    def libRootFile = new File(project.projectDir, '/src/asLib')
+    if (appRootFile.exists() || libRootFile.exists()) {
+        return
+    }
+    //生成asApp目录
+    if (!appRootFile.exists()) {
+        appRootFile.mkdirs()
+        new File(appRootFile, 'AndroidManifest.xml') << new File(rootProject.projectDir, "SubModuleTamplate/asApp/AndroidManifest.xml").text.replace('xxx.xxx.xxx', project.ext.packageName)
+        def javaFile = new File(appRootFile, 'java')
+        if (!javaFile.exists()) {
+            javaFile.mkdirs()
+            javaFile = new File(javaFile, project.ext.packageName.replace('.', '/'))
+            if (!javaFile.exists()) {
+                javaFile.mkdirs()
+            }
+            new File(javaFile, "MainActivity.java") << new File(rootProject.projectDir, "SubModuleTamplate/asApp/MainActivity.java").text.replace('xxx.xxx.xxx', project.ext.packageName)
+        }
+        def resFile = new File(appRootFile, 'res')
+        if (!resFile.exists()) {
+            resFile.mkdirs()
+            def layoutFile = new File(resFile, 'layout')
+            if (!layoutFile.exists()) {
+                layoutFile.mkdirs()
+            }
+            new File(layoutFile, 'activity_main.xml') << new File(rootProject.projectDir, "SubModuleTamplate/asApp/activity_main.xml").text
+            def mipmapFile = new File(resFile, 'mipmap-xxhdpi')
+            if (!mipmapFile.exists()) {
+                mipmapFile.mkdirs()
+            }
+            new File(mipmapFile, 'ic_launcher.png') << new File(rootProject.projectDir, "SubModuleTamplate/asApp/ic_launcher.png")
+        }
+    }
+//生成asLib目录
+    if (!libRootFile.exists()) {
+        libRootFile.mkdirs()
+        new File(libRootFile, 'AndroidManifest.xml') << new File(rootProject.projectDir, "SubModuleTamplate/asLib/AndroidManifest.xml").text.replace('xxx.xxx.xxx', project.ext.packageName)
+
+        def javaFile = new File(libRootFile, 'java')
+        if (!javaFile.exists()) {
+            javaFile.mkdirs()
+            javaFile = new File(javaFile, project.ext.packageName.replace('.', '/'))
+            if (!javaFile.exists()) {
+                javaFile.mkdirs()
+            }
+        }
+        def resFile = new File(libRootFile, 'res')
+        if (!resFile.exists()) {
+            resFile.mkdirs()
+        }
+    }
+}
+
+task("ndkCrushAnalyze") {
+    doFirst {
+        if (!hasProperty('crushFile') || !hasProperty('outputFile') || !hasProperty('soDir')) {
+            print("请输入参数  -PcrushFile=... -PoutputFile=... -PsoDir=...")
+            return
+        }
+        printf("androidNdkDirectory %s", android.ndkDirectory.absolutePath)
+        def crushFile = getProperty("crushFile")
+        print("crushFilePath = " + crushFile)
+        def outputFile = getProperty("outputFile")
+        print("outputFile = " + outputFile)
+        def soDir = getProperty("soDir")
+        print("soDir = " + soDir)
+        if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+            commandLine 'cmd', '/c', 'java -version'
+        } else {
+            def cmd = "${android.ndkDirectory.absolutePath}/ndk-stack -sym ${soDir} -dump ${crushFilePath} >> ${outputFile}"
+            exec {
+                ExecSpec execSpec ->
+                    executable 'bash'
+                    args '-c', cmd
+            }
+        }
+    }
+}

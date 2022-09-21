@@ -1,0 +1,36 @@
+ext {
+    android = [
+            CompileSdkVersion: 29,
+            BuildToolsVersion: "30.0.0",
+            minSdkVersion    : 21,
+            targetSdkVersion : 29,
+            versionCode      : 1,
+            versionName      : "1.0",
+            isApplication: Boolean.parseBoolean("${buildSubModuleAsApp}")
+    ]
+    implementations = [
+            publicImplementations       : [
+                    'androidx.appcompat:appcompat:1.1.0',
+                    'com.google.android.material:material:1.0.0',
+                    'androidx.constraintlayout:constraintlayout:1.1.3',
+                    'androidx.navigation:navigation-fragment:2.1.0',
+                    'androidx.navigation:navigation-ui:2.1.0'
+            ],
+            publicImplementationsProject: [
+                    ':sub_base',
+
+            ],
+            androidTestImplementation   : [
+                    'androidx.test.ext:junit:1.1.1', 'androidx.test.espresso:espresso-core:3.2.0'
+            ],
+            testImplementation          : [
+                    'junit:junit:4.12'
+            ]
+    ]
+    packageIds = [
+            'sub_user': 22
+    ]
+    globalBuildConfig = [
+            demoAppId  : 'id 3',
+    ]
+}
