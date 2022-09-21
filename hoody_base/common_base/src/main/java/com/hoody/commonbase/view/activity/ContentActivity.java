@@ -199,7 +199,7 @@ public abstract class ContentActivity extends AbstractContentActivity {
         } catch (ClassCastException e) {
             e.printStackTrace();
             errCode = -1;
-            Log.d(TAG, "Start_Param_Fragment 必须指向 com.hoody.lib_view.activity.liveplay.CloseableBaseFragment 的子类");
+            Log.d(TAG, "Start_Param_Fragment 必须指向 com.hoody.commonbase.view.fragment.CloseableFragment 的子类");
             return false;
         } finally {
             if (errCode < 0) {
