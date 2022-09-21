@@ -15,9 +15,9 @@
         android:minWidth="24dp"
         android:minHeight="12dp"
         android:padding="10dp"
-        android:textColor="@color/white"
+        android:textColor="@color/common_bg"
         android:textSize="24sp"
-        tools:background="@color/black"
+        tools:background="@android:color/black"
         tools:text="1" />
 
 </FrameLayout>

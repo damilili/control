@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 ext {
-    packageName = "com.hoody.wificontrol"
+    packageName = "com.hoody.main"
 }
 apply plugin: "com.hoody.android.common"
 android {
@@ -8,7 +8,7 @@ android {
     buildToolsVersion rootProject.ext.android.BuildToolsVersion
 
     defaultConfig {
-        applicationId "com.hoody.wificontrol"
+        applicationId "com.hoody.main"
         minSdkVersion rootProject.ext.android.minSdkVersion
         targetSdkVersion rootProject.ext.android.targetSdkVersion
         versionCode rootProject.ext.android.versionCode
@@ -40,9 +40,6 @@ dependencies {
         implementation project(it)
     }
     if (!rootProject.ext.android.isApplication){
-
+        implementation project(':sub_wifi_control')
     }
-    testImplementation rootProject.ext.implementations.testImplementation
-    androidTestImplementation rootProject.ext.implementations.androidTestImplementation
-
 }

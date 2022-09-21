@@ -20,10 +20,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.hoody.annotation.router.Router;
+import com.hoody.commonbase.view.fragment.BaseFragment;
+import com.hoody.commonbase.view.fragment.SwipeBackFragment;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 public class ControllerFragment extends Fragment {
     private KeboardItem[] mItems = new KeboardItem[]{
@@ -35,6 +38,7 @@ public class ControllerFragment extends Fragment {
     };
 
     public ControllerFragment() {
+
         // Required empty public constructor
     }
 
@@ -43,9 +47,9 @@ public class ControllerFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_controller, container, false);
     }
 
@@ -53,10 +57,10 @@ public class ControllerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         switch (getArguments().getInt("position")) {
             case 0:
-                ((ImageView) view.findViewById(R.id.device_logo)).setImageResource(R.mipmap.logo_tv);
+                ((ImageView) view.findViewById(R.id.device_logo)).setImageResource(R.drawable.logo_tv);
                 break;
             case 1:
-                ((ImageView) view.findViewById(R.id.device_logo)).setImageResource(R.mipmap.logo_air);
+                ((ImageView) view.findViewById(R.id.device_logo)).setImageResource(R.drawable.logo_air);
                 break;
         }
 
