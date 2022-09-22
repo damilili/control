@@ -1,4 +1,4 @@
-package com.hoody.wificontrol;
+package com.hoody.wificontrol.model;
 
 public class Key extends KeboardItem {
     public Key(int id, String name, byte preCode, byte userCode, byte dataCode) {

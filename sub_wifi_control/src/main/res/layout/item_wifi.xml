@@ -3,14 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".view.ControllerFragment">
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/ls_key_group"
+    <TextView
+        android:id="@+id/tv_wifi_name"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent" />
-
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:textColor="@android:color/black"
+        android:textSize="14sp"
+        tools:background="@android:color/transparent"
+        tools:text="1" />
 
 </FrameLayout>

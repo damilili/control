@@ -6,7 +6,11 @@ import android.net.DhcpInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Parcelable;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.hoody.commonbase.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +43,14 @@ public class WifiUtil {
     /**
      * 获取附近wifi信号
      */
-    public static List<String> getAroundWifiDeviceInfo(Context context) {
-        StringBuffer sInfo = new StringBuffer();
+    public static List<ScanResult> getAroundWifiDeviceInfo(Context context) {
         WifiManager mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo mWifiInfo = mWifiManager.getConnectionInfo();
         List<ScanResult> scanResults = mWifiManager.getScanResults();//搜索到的设备列表
         List<ScanResult> newScanResultList = new ArrayList<>();
         for (ScanResult scanResult : scanResults) {
+            if (TextUtils.isEmpty(scanResult.SSID.trim())) {
+                continue;
+            }
             int position = getItemPosition(newScanResultList, scanResult);
             if (position != -1) {
                 if (newScanResultList.get(position).level < scanResult.level) {
@@ -56,24 +61,24 @@ public class WifiUtil {
                 newScanResultList.add(scanResult);
             }
         }
-        List<String> stringList = new ArrayList<>();
-        for (int i = 0; i < newScanResultList.size(); i++) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("设备名(SSID) ->" + newScanResultList.get(i).SSID + "\n");
-            stringBuilder.append("信号强度 ->" + newScanResultList.get(i).level + "\n");
-            stringBuilder.append("BSSID ->" + newScanResultList.get(i).BSSID + "\n");
-            stringBuilder.append("level ->" + newScanResultList.get(i).level + "\n");
-            stringBuilder.append("采集时间戳 ->" + System.currentTimeMillis() + "\n");
-            stringBuilder.append("rssi ->" + (mWifiInfo != null && (mWifiInfo.getSSID().replace("\"", "")).equals(newScanResultList.get(i).SSID) ? mWifiInfo.getRssi() : null) + "\n");
-            //是否为连接信号(1连接，默认为null)
-            stringBuilder.append("是否为连接信号 ->" + (mWifiInfo != null && (mWifiInfo.getSSID().replace("\"", "")).equals(newScanResultList.get(i).SSID) ? 1 : null) + "\n");
-            stringBuilder.append("信道 - >" + getCurrentChannel(mWifiManager) + "\n");
-            //1 为2.4g 2 为5g
-            stringBuilder.append("频段 ->" + is24GOr5GHz(newScanResultList.get(i).frequency));
-            stringList.add(stringBuilder.toString());
-        }
-        Log.d("getAroundWifiDeviceInfo", sInfo.toString());
-        return stringList;
+        StringBuffer sInfo = new StringBuffer();
+        WifiInfo mWifiInfo = mWifiManager.getConnectionInfo();
+//        for (int i = 0; i < newScanResultList.size(); i++) {
+//            StringBuilder stringBuilder = new StringBuilder();
+//            stringBuilder.append("设备名(SSID) ->" + newScanResultList.get(i).SSID + "\n");
+//            stringBuilder.append("信号强度 ->" + newScanResultList.get(i).level + "\n");
+//            stringBuilder.append("BSSID ->" + newScanResultList.get(i).BSSID + "\n");
+//            stringBuilder.append("level ->" + newScanResultList.get(i).level + "\n");
+//            stringBuilder.append("采集时间戳 ->" + System.currentTimeMillis() + "\n");
+//            stringBuilder.append("rssi ->" + (mWifiInfo != null && (mWifiInfo.getSSID().replace("\"", "")).equals(newScanResultList.get(i).SSID) ? mWifiInfo.getRssi() : null) + "\n");
+//            //是否为连接信号(1连接，默认为null)
+//            stringBuilder.append("是否为连接信号 ->" + (mWifiInfo != null && (mWifiInfo.getSSID().replace("\"", "")).equals(newScanResultList.get(i).SSID) ? 1 : null) + "\n");
+//            stringBuilder.append("信道 - >" + getCurrentChannel(mWifiManager) + "\n");
+//            //1 为2.4g 2 为5g
+//            stringBuilder.append("频段 ->" + is24GOr5GHz(newScanResultList.get(i).frequency));
+//            Logger.i(TAG, "scanResult: "+stringBuilder.toString());
+//        }
+        return newScanResultList;
     }
 
 

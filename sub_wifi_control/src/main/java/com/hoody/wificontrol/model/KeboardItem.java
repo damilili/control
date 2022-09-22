@@ -1,4 +1,4 @@
-package com.hoody.wificontrol;
+package com.hoody.wificontrol.model;
 
 public class KeboardItem {
     public int spanSize;

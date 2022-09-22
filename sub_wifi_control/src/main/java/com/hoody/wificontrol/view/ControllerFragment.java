@@ -1,4 +1,4 @@
-package com.hoody.wificontrol;
+package com.hoody.wificontrol.view;
 
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -20,9 +20,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.hoody.annotation.router.Router;
-import com.hoody.commonbase.view.fragment.BaseFragment;
-import com.hoody.commonbase.view.fragment.SwipeBackFragment;
+import com.hoody.wificontrol.model.KeboardItem;
+import com.hoody.wificontrol.model.Key;
+import com.hoody.wificontrol.model.KeyGroup;
+import com.hoody.wificontrol.model.KeyNumGroup;
+import com.hoody.wificontrol.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
