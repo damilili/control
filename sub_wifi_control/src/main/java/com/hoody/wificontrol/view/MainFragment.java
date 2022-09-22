@@ -77,7 +77,10 @@ public class MainFragment extends SwipeBackFragment {
         findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showWifiSet();
+                DevicePassInputPopupWindow devicePassInputPopupWindow = new DevicePassInputPopupWindow(getContext());
+                devicePassInputPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
+                devicePassInputPopupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+                devicePassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
             }
         });
     }
