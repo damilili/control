@@ -10,6 +10,8 @@ import com.hoody.commonbase.net.ReqeuestHeader;
 import com.hoody.commonbase.net.ReqeuestParam;
 import com.hoody.commonbase.net.client.HttpClientWrapper;
 import com.hoody.commonbase.util.SharedPreferenceUtil;
+import com.hoody.commonbase.util.SynchronizeUtil;
+import com.hoody.commonbase.util.TimeUtils;
 import com.hoody.commonbase.util.UrlUtil;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.ResponseBase;
@@ -17,6 +19,12 @@ import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.WifiUtil;
 
 import org.json.JSONObject;
+
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 
 /**
  * 客户端状态说明：
@@ -27,6 +35,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     private static final String TAG = "WifiDeviceModel";
     private static final String KEY_DEVICE_SERVER_IP = "KEY_DEVICE_SERVER_IP";
     private static final String KEY_DEVICE_SERVER_TOKEN = "KEY_DEVICE_SERVER_TOKEN";
+    private static final int MAX_CHECK_STUDY_TIME = 10;
 
     @Override
     public void checkDeviceStatus() {
@@ -80,6 +89,126 @@ public class WifiDeviceModel implements IWifiDeviceModel {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
             modifyPass(apIp, oldPass, newPass);
         }
+    }
+
+    private String studyKeyId;
+
+    @Override
+    public void studyKey(String keyId) {
+        String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
+        if (!TextUtils.isEmpty(serverIp)) {
+            studyKey(serverIp, keyId);
+        } else {
+            String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+            studyKey(apIp, keyId);
+        }
+    }
+
+    @Override
+    public void endStudyKey() {
+        studyKeyId = "0";
+    }
+
+    private void studyKey(String serverIp, String keyId) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/study", null);
+        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+        ReqeuestParam reqeuestParam = new ReqeuestParam();
+        reqeuestParam.put("token", token);
+        reqeuestParam.put("keyid", keyId);
+        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+            @Override
+            public void onRequestSuccess(JSONObject result) {
+                if (commonKeyParse(result)) {
+                    return;
+                }
+                int code = result.optInt("code");
+                if (code == 0) {
+                    checkStudyCount = 0;
+                    studyKeyId = keyId;
+                    getStudyResultDelay(serverIp);
+                } else {
+                    Messenger.sendTo(IWifiObserver.class).onStudyFail(keyId);
+                }
+            }
+
+            @Override
+            public void onRequestFail(int errCode, String errDes) {
+                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+                if (errCode == -1) {
+                    Logger.i(TAG, "使用ap检查!");
+                    if (!TextUtils.equals(serverIp, apIp)) {
+                        studyKey(apIp, keyId);
+                    } else {
+                        Logger.i(TAG, "请连接设备wifi!");
+                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
+                    }
+                } else if (errCode == -2) {
+                    Logger.i(TAG, "解析异常: ");
+                }
+            }
+        });
+    }
+
+    private void getStudyResult(String serverIp, String keyId) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/getStudyResult", null);
+        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+        ReqeuestParam reqeuestParam = new ReqeuestParam();
+        reqeuestParam.put("token", token);
+        reqeuestParam.put("keyid", keyId);
+        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+            @Override
+            public void onRequestSuccess(JSONObject result) {
+                if (commonKeyParse(result)) {
+                    endStudyKey();
+                    return;
+                }
+                int code = result.optInt("code");
+                if (code == 0) {
+                    endStudyKey();
+                    int preCode = result.optInt("preCode");
+                    int userCode = result.optInt("userCode");
+                    int dataCode = result.optInt("dataCode");
+                    Messenger.sendTo(IWifiObserver.class).onStudySuccess(keyId, preCode, userCode, dataCode);
+                } else if (code == 7) {
+                    getStudyResultDelay(serverIp);
+                } else {
+                    endStudyKey();
+                    Messenger.sendTo(IWifiObserver.class).onStudyFail(keyId);
+                }
+            }
+
+            @Override
+            public void onRequestFail(int errCode, String errDes) {
+                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+                if (errCode == -1) {
+                    Logger.i(TAG, "使用ap检查!");
+                    if (!TextUtils.equals(serverIp, apIp)) {
+                        getStudyResult(apIp, keyId);
+                    } else {
+                        Logger.i(TAG, "请连接设备wifi!");
+                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
+                    }
+                } else if (errCode == -2) {
+                    Logger.i(TAG, "解析异常: ");
+                }
+            }
+        });
+    }
+
+    int checkStudyCount = 0;
+
+    private void getStudyResultDelay(String serverIp) {
+        if (checkStudyCount > MAX_CHECK_STUDY_TIME) {
+            endStudyKey();
+            return;
+        }
+        SynchronizeUtil.runMainThreadDelay(new Runnable() {
+            @Override
+            public void run() {
+                checkStudyCount++;
+                getStudyResult(serverIp, studyKeyId);
+            }
+        }, 1000);
     }
 
     private void modifyPass(String serverIp, String oldPass, String newPass) {

@@ -97,6 +97,12 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
                 showWifiSet();
             }
         });
+        findViewById(R.id.bt_study).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ModelManager.getModel(IWifiDeviceModel.class).studyKey("123");
+            }
+        });
     }
 
     private void showWifiSet() {
@@ -179,11 +185,21 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
 
     @Override
     public void onSetWifiSuccess() {
-        ToastUtil.showToast(getContext(),"设置成功");
+        ToastUtil.showToast(getContext(), "设置成功");
     }
 
     @Override
     public void onPassResetFail() {
-        ToastUtil.showToast(getContext(),"修改失败");
+        ToastUtil.showToast(getContext(), "修改失败");
+    }
+
+    @Override
+    public void onStudySuccess(String keyId, int preCode, int userCode, int dataCode) {
+        ToastUtil.showToast(getContext(), "学习成功");
+    }
+
+    @Override
+    public void onStudyFail(String keyId) {
+
     }
 }

@@ -36,4 +36,8 @@ public interface IWifiObserver extends IMessageObserver {
 
     void onPassResetFail();
 
+    void onStudySuccess(String keyId, int preCode, int userCode, int dataCode);
+
+    void onStudyFail(String keyId);
+
 }

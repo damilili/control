@@ -15,4 +15,8 @@ public interface IWifiDeviceModel extends IModel {
     void setWifiInfo(String wifiName, String pass);
 
     void modifyPass(String oldPass, String newPass);
+
+    void studyKey(String keyId);
+
+    void endStudyKey();
 }
