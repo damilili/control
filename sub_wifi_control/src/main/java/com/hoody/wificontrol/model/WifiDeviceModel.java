@@ -25,7 +25,6 @@ import org.json.JSONObject;
 @ModelImpl
 public class WifiDeviceModel implements IWifiDeviceModel {
     private static final String TAG = "WifiDeviceModel";
-    private static final String KEY_DEVICE_AP_IP = "KEY_DEVICE_AP_IP";
     private static final String KEY_DEVICE_SERVER_IP = "KEY_DEVICE_SERVER_IP";
     private static final String KEY_DEVICE_SERVER_TOKEN = "KEY_DEVICE_SERVER_TOKEN";
 
