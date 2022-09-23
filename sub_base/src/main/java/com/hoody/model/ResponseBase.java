@@ -26,13 +26,7 @@ public abstract class ResponseBase implements RequestCallBack {
     public final void onRequestSuccess(String result) {
         try {
             JSONObject jsonObject = new JSONObject(result);
-            int code = jsonObject.optInt(CODE_NAME);
-            if (code == CODE_OK) {
-                onRequestSuccess(jsonObject);
-            } else {
-                String des = jsonObject.optString(DES_NAME);
-                onRequestFail(code, des);
-            }
+            onRequestSuccess(jsonObject);
         } catch (JSONException e) {
             e.printStackTrace();
             onRequestFail(-2, "数据解析异常");

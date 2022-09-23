@@ -17,11 +17,15 @@ import androidx.fragment.app.FragmentFactory;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.hoody.annotation.model.ModelManager;
 import com.hoody.annotation.permission.Permissions;
 import com.hoody.annotation.router.Router;
 import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.util.DeviceInfo;
+import com.hoody.commonbase.util.ToastUtil;
 import com.hoody.commonbase.view.fragment.SwipeBackFragment;
+import com.hoody.model.wificontrol.IWifiDeviceModel;
+import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.R;
 import com.hoody.wificontrol.WifiUtil;
 
@@ -32,8 +36,11 @@ import com.hoody.wificontrol.WifiUtil;
         Manifest.permission.ACCESS_NETWORK_STATE,
         Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION})
-public class MainFragment extends SwipeBackFragment {
+public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     private static final String TAG = "MainFragment";
+    private DevicePassSetPopupWindow mDevicePassSetPopupWindow;
+    private DevicePassInputPopupWindow mDevicePassInputPopupWindow;
+    private WifiListPopupWindow mWifiListPopupWindow;
 
     @Override
     protected void onClose() {
@@ -51,6 +58,7 @@ public class MainFragment extends SwipeBackFragment {
         initView();
         String apIp = WifiUtil.getApIp(getContext());
         Logger.i(TAG, "apip = " + apIp);
+        mObserverRegister.regist(this);
     }
 
     private void initView() {
@@ -77,23 +85,20 @@ public class MainFragment extends SwipeBackFragment {
         findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DevicePassInputPopupWindow devicePassInputPopupWindow = new DevicePassInputPopupWindow(getContext());
-                devicePassInputPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
-                devicePassInputPopupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-                devicePassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+                ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
             }
         });
     }
 
     private void showWifiSet() {
-        WifiListPopupWindow popupWindow = new WifiListPopupWindow(getContext());
-        popupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
-        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        popupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-        popupWindow.setOnItemClickListener(new WifiListPopupWindow.OnItemClickListener() {
+        mWifiListPopupWindow = new WifiListPopupWindow(getContext());
+        mWifiListPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
+        mWifiListPopupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        mWifiListPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+        mWifiListPopupWindow.setOnItemClickListener(new WifiListPopupWindow.OnItemClickListener() {
             @Override
             public void onItemClick(ScanResult scanResult) {
-                popupWindow.dismiss();
+                mWifiListPopupWindow.dismiss();
                 WifiPassInputPopupWindow wifiPassInputPopupWindow = new WifiPassInputPopupWindow(getContext());
                 wifiPassInputPopupWindow.setWifiName(scanResult.SSID);
                 wifiPassInputPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
@@ -110,4 +115,54 @@ public class MainFragment extends SwipeBackFragment {
         Logger.i(TAG, "startScan: " + b);
     }
 
+    @Override
+    public void onNoFoundDevices() {
+        ToastUtil.showToast(getContext(), "没有发现设备");
+    }
+
+    @Override
+    public void onPassSetSuccess() {
+        ToastUtil.showToast(getContext(), "设置成功");
+        if (mDevicePassSetPopupWindow != null) {
+            mDevicePassSetPopupWindow.dismiss();
+        }
+    }
+
+    @Override
+    public void onDeviceManagerPassNull() {
+        mDevicePassSetPopupWindow = new DevicePassSetPopupWindow(getContext());
+        mDevicePassSetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+    }
+
+    @Override
+    public void onDeviceManagerPassErr() {
+        mDevicePassInputPopupWindow = new DevicePassInputPopupWindow(getContext());
+        mDevicePassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+    }
+
+    @Override
+    public void onWifiNull() {
+        showWifiSet();
+    }
+
+    @Override
+    public void onWifiErr() {
+        showWifiSet();
+    }
+
+    @Override
+    public void onLoginSuccess() {
+        if (mDevicePassInputPopupWindow != null) {
+            mDevicePassInputPopupWindow.dismiss();
+        }
+    }
+
+    @Override
+    public void onDeviceManagerPassANDWifiOk() {
+    }
+
+    @Override
+    public void onSetWifiSuccess() {
+        ToastUtil.showToast(getContext(),"设置成功");
+    }
 }

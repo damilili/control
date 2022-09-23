@@ -17,6 +17,7 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 
 
+import com.hoody.commonbase.util.DeviceInfo;
 import com.hoody.wificontrol.R;
 import com.hoody.wificontrol.WifiUtil;
 
@@ -35,6 +36,8 @@ public class WifiListPopupWindow extends PopupWindow {
         View popView = View.inflate(context, R.layout.pop_wifi_list, null);
         mWifiList = popView.findViewById(R.id.ls_wifi);
         mWifiList.setAdapter(new WifiListAdapter());
+        setWidth(DeviceInfo.ScreenWidth() / 2);
+        setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mWifiList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
