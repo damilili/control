@@ -147,6 +147,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
 
     @Override
     public void onWifiErr() {
+        ToastUtil.showToast(getContext(), "wifi连接失败，请重新选择");
         showWifiSet();
     }
 
@@ -155,6 +156,12 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
         if (mDevicePassInputPopupWindow != null) {
             mDevicePassInputPopupWindow.dismiss();
         }
+        ToastUtil.showToast(getContext(), "认证成功");
+    }
+
+    @Override
+    public void onLoginFail() {
+        ToastUtil.showToast(getContext(), "认证失败");
     }
 
     @Override

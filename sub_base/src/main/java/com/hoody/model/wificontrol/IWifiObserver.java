@@ -28,5 +28,9 @@ public interface IWifiObserver extends IMessageObserver {
     default void onLoginSuccess() {
     }
 
-    default void onSetWifiSuccess(){}
+    default void onLoginFail() {
+    }
+
+    default void onSetWifiSuccess() {
+    }
 }

@@ -37,8 +37,8 @@ public class DevicePassSetPopupWindow extends PopupWindow {
                     ToastUtil.showToast(v.getContext(), "两次输入的密码不一致");
                     return;
                 }
-
                 ModelManager.getModel(IWifiDeviceModel.class).setAccessPass(text.toString());
+                dismiss();
             }
         });
         setOutsideTouchable(true);

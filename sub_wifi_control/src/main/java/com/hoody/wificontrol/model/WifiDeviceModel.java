@@ -53,10 +53,10 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     public void login(String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
         if (!TextUtils.isEmpty(serverIp)) {
-            checkAccessPass(serverIp, pass);
+            login(serverIp, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
-            checkAccessPass(apIp, pass);
+            login(apIp, pass);
         }
     }
 
@@ -108,11 +108,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         });
     }
 
-    private void checkAccessPass(String serverIp, String pass) {
+    private void login(String serverIp, String pass) {
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/login", null);
-        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
-        reqeuestParam.put("token", token);
         reqeuestParam.put("pass", pass);
         HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
             @Override
@@ -123,6 +121,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 int code = result.optInt("code");
                 if (code == 0) {
                     Messenger.sendTo(IWifiObserver.class).onLoginSuccess();
+                } else {
+                    Messenger.sendTo(IWifiObserver.class).onLoginFail();
                 }
             }
 
