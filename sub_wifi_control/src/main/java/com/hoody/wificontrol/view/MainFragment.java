@@ -20,6 +20,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.hoody.annotation.model.ModelManager;
 import com.hoody.annotation.permission.Permissions;
 import com.hoody.annotation.router.Router;
+import com.hoody.commonbase.customview.slidedecidable.SlideDecidableLayout;
 import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.util.DeviceInfo;
 import com.hoody.commonbase.util.ToastUtil;
@@ -56,9 +57,9 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initView();
-        String apIp = WifiUtil.getApIp(getContext());
-        Logger.i(TAG, "apip = " + apIp);
         mObserverRegister.regist(this);
+        //检查设备状态
+        ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
     }
 
     private void initView() {
@@ -81,11 +82,19 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
             }
         };
         controller_pager.setAdapter(fragmentStateAdapter);
+        getSwipeBackLayout().addDecider(SlideDecidableLayout.DeciderProduceUtil.getViewSlidableDecider(controller_pager));
 
-        findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_reset_manage_pass).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
+                DevicePassResetPopupWindow devicePassResetPopupWindow = new DevicePassResetPopupWindow(getContext());
+                devicePassResetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+            }
+        });
+        findViewById(R.id.bt_set_wifi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showWifiSet();
             }
         });
     }
@@ -171,5 +180,10 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     @Override
     public void onSetWifiSuccess() {
         ToastUtil.showToast(getContext(),"设置成功");
+    }
+
+    @Override
+    public void onPassResetFail() {
+        ToastUtil.showToast(getContext(),"修改失败");
     }
 }

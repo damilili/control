@@ -71,6 +71,56 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         }
     }
 
+    @Override
+    public void modifyPass(String oldPass, String newPass) {
+        String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
+        if (!TextUtils.isEmpty(serverIp)) {
+            modifyPass(serverIp, oldPass, newPass);
+        } else {
+            String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+            modifyPass(apIp, oldPass, newPass);
+        }
+    }
+
+    private void modifyPass(String serverIp, String oldPass, String newPass) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/modifypass", null);
+        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+        ReqeuestParam reqeuestParam = new ReqeuestParam();
+        reqeuestParam.put("token", token);
+        reqeuestParam.put("oldPass", oldPass);
+        reqeuestParam.put("newPass", newPass);
+        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+            @Override
+            public void onRequestSuccess(JSONObject result) {
+                if (commonKeyParse(result)) {
+                    return;
+                }
+                int code = result.optInt("code");
+                if (code == 0) {
+                    Messenger.sendTo(IWifiObserver.class).onPassSetSuccess();
+                } else {
+                    Messenger.sendTo(IWifiObserver.class).onPassResetFail();
+                }
+            }
+
+            @Override
+            public void onRequestFail(int errCode, String errDes) {
+                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+                if (errCode == -1) {
+                    Logger.i(TAG, "使用ap检查!");
+                    if (!TextUtils.equals(serverIp, apIp)) {
+                        modifyPass(apIp, oldPass, newPass);
+                    } else {
+                        Logger.i(TAG, "请连接设备wifi!");
+                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
+                    }
+                } else if (errCode == -2) {
+                    Logger.i(TAG, "解析异常: ");
+                }
+            }
+        });
+    }
+
     private void setWifi(String serverIp, String wifiName, String pass) {
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/wifi", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
@@ -132,7 +182,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 if (errCode == -1) {
                     Logger.i(TAG, "使用ap检查!");
                     if (!TextUtils.equals(serverIp, apIp)) {
-                        setAccessPass(apIp, apIp);
+                        login(apIp, pass);
                     } else {
                         Logger.i(TAG, "请连接设备wifi!");
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
@@ -168,7 +218,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 if (errCode == -1) {
                     Logger.i(TAG, "使用ap检查!");
                     if (!TextUtils.equals(serverIp, apIp)) {
-                        setAccessPass(apIp, apIp);
+                        setAccessPass(apIp, pass);
                     } else {
                         Logger.i(TAG, "请连接设备wifi!");
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();

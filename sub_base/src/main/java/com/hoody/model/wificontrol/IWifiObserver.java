@@ -33,4 +33,7 @@ public interface IWifiObserver extends IMessageObserver {
 
     default void onSetWifiSuccess() {
     }
+
+    void onPassResetFail();
+
 }

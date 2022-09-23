@@ -14,10 +14,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+
     <Button
-        android:id="@+id/bt_set"
-        android:text="设   置"
+        android:id="@+id/bt_reset_manage_pass"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="修改设备管理密码" />
+
+    <Button
+        android:id="@+id/bt_set_wifi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_reset_manage_pass"
+        android:text="设置设备wifi" />
 
 </RelativeLayout>
