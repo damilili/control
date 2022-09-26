@@ -37,11 +37,19 @@ public interface IWifiObserver extends IMessageObserver {
     default void onSetWifiSuccess() {
     }
 
-    void onPassResetFail();
+    default void onManagerPassResetFail() {
+    }
 
-    void onStudySuccess(String keyId, int preCode, int userCode, int dataCode);
+    default void onStudySuccess(String keyId, int preCode, int userCode, int dataCode) {
+    }
 
-    void onStudyFail(String keyId);
+    default void onStudyFail(String keyId) {
+    }
 
 
+    default void onModifyWifiPassSuccess() {
+    }
+
+    default void onModifyWifiPassFail() {
+    }
 }

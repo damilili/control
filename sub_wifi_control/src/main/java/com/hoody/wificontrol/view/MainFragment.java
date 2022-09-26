@@ -41,6 +41,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     private DevicePassSetPopupWindow mDevicePassSetPopupWindow;
     private DevicePassInputPopupWindow mDevicePassInputPopupWindow;
     private WifiListPopupWindow mWifiListPopupWindow;
+    private DeviceWifiPassInputPopupWindow mDeviceWifiPassInputPopupWindow;
 
     @Override
     protected void onClose() {
@@ -91,6 +92,10 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
                     public void onClick(View v) {
                         settingPopupWindow.dismiss();
                         switch (((String) v.getTag())) {
+                            case SettingPopupWindow.ITEM_SET_WIFI_PASS:
+                                mDeviceWifiPassInputPopupWindow = new DeviceWifiPassInputPopupWindow(getContext());
+                                mDeviceWifiPassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+                                break;
                             case SettingPopupWindow.ITEM_SET_WIFI:
                                 showWifiSet();
                                 break;
@@ -145,6 +150,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
         if (mDevicePassSetPopupWindow != null) {
             mDevicePassSetPopupWindow.dismiss();
         }
+        ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
     }
 
     @Override
@@ -176,6 +182,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
             mDevicePassInputPopupWindow.dismiss();
         }
         ToastUtil.showToast(getContext(), "认证成功");
+        ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
     }
 
     @Override
@@ -184,17 +191,13 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     }
 
     @Override
-    public void onDeviceManagerPassANDWifiOk() {
-    }
-
-    @Override
     public void onSetWifiSuccess() {
-        ToastUtil.showToast(getContext(), "设置成功");
+        ToastUtil.showToast(getContext(), "wifi设置成功");
     }
 
     @Override
-    public void onPassResetFail() {
-        ToastUtil.showToast(getContext(), "修改失败");
+    public void onManagerPassResetFail() {
+        ToastUtil.showToast(getContext(), "密码修改失败");
     }
 
     @Override
@@ -209,6 +212,16 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
 
     @Override
     public void onManagerPassSetFail(int code) {
+        ToastUtil.showToast(getContext(), "设置失败，密码长度8-20位");
+    }
 
+    @Override
+    public void onModifyWifiPassSuccess() {
+        ToastUtil.showToast(getContext(), "修改成功，等待设备重启");
+    }
+
+    @Override
+    public void onModifyWifiPassFail() {
+        ToastUtil.showToast(getContext(), "修改失败，密码长度8-20位");
     }
 }

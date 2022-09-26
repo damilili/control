@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <string.h>
+#include <FS.h>
 
 #include <ArduinoJson.h>
 #define Code_ok 0
@@ -14,20 +15,48 @@
 #define Code_muti_regist 6      //重复注册
 #define Code_pass_format_err 7  //秘密格式错误
 
-String myWifiName = "ESP8266";
-String myWifiPass = "ESP8266";
+String myWifiName = "WifiControl";
+String myWifiPass = "WifiControl";
 
 String accessPass = "";
-String token;
+String token = "";
+int32_t tokenExpir;
 
-int tokenExpir;
-String wifiName;
-String wifiPass;
+String wifiName = "";
+String wifiPass = "";
+bool SPIFFS_ok = false;
 
 StaticJsonDocument<200> jsonBuffer;
 
 ESP8266WebServer srv(80);
 
+
+void savaProperties() {
+  if (!SPIFFS_ok) {
+    return;
+  }
+  if (SPIFFS.exists("/properties")) {
+    SPIFFS.remove("/properties");
+  }
+  File propertiesFile = SPIFFS.open("/properties", "r");
+  if (propertiesFile) {
+    if (propertiesFile.available()) {
+      String properties;
+      jsonBuffer["pass"] = accessPass;
+      jsonBuffer["token"] = token;
+      jsonBuffer["wifiName"] = wifiName;
+      jsonBuffer["wifiPass"] = wifiPass;
+      jsonBuffer["tokenExpir"] = tokenExpir;
+      jsonBuffer["myWifiPass"] = myWifiPass;
+      serializeJson(jsonBuffer, properties);
+      propertiesFile.write(properties.c_str(), properties.length());
+      propertiesFile.flush();
+    }
+    propertiesFile.close();
+  } else {
+    Serial.println("file open failed");
+  }
+}
 
 void refreshToken() {
   token = "";
@@ -36,8 +65,52 @@ void refreshToken() {
     token = token + randomChar;
   }
   tokenExpir = millis() + 1000 * 60 * 60;
+  savaProperties();
 }
-
+/*
+路径： device/modifywifipass
+入参： token 必选
+      pass
+*/
+void handleModifyWifiPass() {
+  jsonBuffer.clear();
+  String output;
+  if (accessPass == "") {
+    //没有设置管理员密码
+    jsonBuffer["code"] = Code_no_regist;
+    serializeJson(jsonBuffer, output);
+    srv.send(200, "text/plain", output);
+    return;
+  }
+  String cToken;
+  String cPass;
+  for (int i = 0; i < srv.args(); i++) {
+    if (srv.argName(i).equals("token")) {
+      cToken = srv.arg(i);
+      break;
+    } else if (srv.argName(i).equals("pass")) {
+      cPass = srv.arg(i);
+      break;
+    }
+  }
+  if (token.length() > 0 && token != cToken) {
+    jsonBuffer["code"] = Code_token_err;
+    serializeJson(jsonBuffer, output);
+    //token无效
+    srv.send(200, "text/plain", output);
+    return;
+  }
+  if (cPass.length() < 8 || cPass.length() > 20) {
+    jsonBuffer["code"] = Code_pass_format_err;
+  } else {
+    myWifiPass = cPass;
+    jsonBuffer["code"] = Code_ok;
+  }
+  serializeJson(jsonBuffer, output);
+  srv.send(200, "text/plain", output);
+  savaProperties();
+  ESP.restart();
+}
 /**
 路径： device/modifypass
 入参： oldPass 旧密码
@@ -45,7 +118,7 @@ void refreshToken() {
 返回： code
       token 令牌过期时会返回新的
 */
-void handleModifyPass() {
+void handleModifyManagerPass() {
   jsonBuffer.clear();
   String output;
   if (accessPass == "") {
@@ -64,14 +137,15 @@ void handleModifyPass() {
       cNewPass = srv.arg(i);
     }
   }
-  if (accessPass.equals(cOldPass)) {
+  if (cNewPass.length() < 8 || cNewPass.length() > 20) {
+    jsonBuffer["code"] = Code_pass_format_err;
+  } else if (accessPass.length() > 0 && accessPass.equals(cOldPass)) {
+    refreshToken();
     accessPass = cNewPass;
     jsonBuffer["code"] = Code_ok;
+    jsonBuffer["token"] = token;
   } else {
     jsonBuffer["code"] = Code_pass_err;
-  }
-  if (millis() - tokenExpir > 0) {
-    jsonBuffer["token"] = token;
   }
   serializeJson(jsonBuffer, output);
   srv.send(200, "text/plain", output);
@@ -132,10 +206,11 @@ void handleWifi() {
   // 成功连接wifi
   wifiName = cWifiName;
   wifiPass = cPass;
+  savaProperties();
   if (millis() - tokenExpir > 0) {
     jsonBuffer["token"] = token;
   }
-  jsonBuffer["code"] = Code_ok;
+  jsonBuffer["code"] = 0;
   jsonBuffer["wifiIp"] = WiFi.localIP();
   serializeJson(jsonBuffer, output);
   srv.send(200, "text/plain", output);
@@ -164,7 +239,7 @@ void handleLogin() {
       break;
     }
   }
-  if (accessPass.equals(cPass)) {
+  if (accessPass.length() > 0 && accessPass.equals(cPass)) {
     refreshToken();
     jsonBuffer["code"] = Code_ok;
     jsonBuffer["token"] = token;
@@ -184,7 +259,7 @@ void handleLogin() {
 void handleRegist() {
   jsonBuffer.clear();
   String output;
-  if (accessPass != "") {
+  if (accessPass.length() > 0) {
     jsonBuffer["code"] = Code_muti_regist;
     serializeJson(jsonBuffer, output);
     srv.send(200, "text/plain", output);
@@ -197,7 +272,7 @@ void handleRegist() {
       break;
     }
   }
-  if (cPass.length() < 8) {
+  if (cPass.length() < 8 || cPass.length() > 20) {
     jsonBuffer["code"] = Code_pass_format_err;
   } else {
     accessPass = cPass;
@@ -231,7 +306,6 @@ int checkStatus() {
 /*
 路径： device/status
 入参： token 可选
-
 */
 void handleStatus() {
   jsonBuffer.clear();
@@ -242,24 +316,79 @@ void handleStatus() {
   srv.send(200, "text/plain", output);
 }
 
+void initProperties() {
+  SPIFFS_ok = SPIFFS.begin();
+  if (!SPIFFS_ok) {
+    return;
+  }
+  if (SPIFFS.exists("/properties")) {
+    File propertiesFile = SPIFFS.open("/properties", "r");
+    if (propertiesFile) {
+      if (propertiesFile.available()) {
+        String properties = propertiesFile.readString();
+        deserializeJson(jsonBuffer, properties);
+        if (jsonBuffer.containsKey("pass")) {
+          accessPass.concat(jsonBuffer["pass"], jsonBuffer["pass"].size());
+        }
+        if (jsonBuffer.containsKey("token")) {
+          token.concat(jsonBuffer["token"], jsonBuffer["token"].size());
+        }
+        if (jsonBuffer.containsKey("tokenExpir")) {
+          tokenExpir = jsonBuffer["tokenExpir"];
+        }
+        if (jsonBuffer.containsKey("wifiName")) {
+          wifiName.concat(jsonBuffer["wifiName"], jsonBuffer["wifiName"].size());
+        }
+        if (jsonBuffer.containsKey("wifiPass")) {
+          wifiPass.concat(jsonBuffer["wifiPass"], jsonBuffer["wifiPass"].size());
+        }
+        if (jsonBuffer.containsKey("myWifiPass") && jsonBuffer["myWifiPass"].size() > 0) {
+          myWifiPass = "";
+          myWifiPass.concat(jsonBuffer["myWifiPass"], jsonBuffer["myWifiPass"].size());
+        }
+        jsonBuffer.clear();
+      }
+      propertiesFile.close();
+    } else {
+      Serial.println("file open failed");
+    }
+  }
+}
+
 void setup() {
   Serial.begin(9600);
-  randomSeed(analogRead(5));
 
+  randomSeed(analogRead(5));
   Serial.println();
   Serial.println();
   Serial.println();
   WiFi.mode(WIFI_AP_STA);
+
+  initProperties();
   WiFi.softAP(myWifiName, myWifiPass);
   //  IrSender.begin();
   Serial.println("wifi ip:");
   Serial.println(WiFi.softAPIP());
 
+  if (wifiName.length() > 0) {
+    int32_t startMillis = millis();
+    WiFi.begin(wifiName.c_str(), wifiPass.c_str());
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+      if (millis() - startMillis > 10000) {
+        wifiName = "";
+        wifiPass = "";
+        break;
+      }
+    }
+  }
   // srv.on("/", handleRoot);
   // srv.on("/post/", handleData);
   // srv.on("/device/study", handleData);
   // srv.on("/device/getStudyResult", handleData);
-  srv.on("/device/modifypass", handleModifyPass);
+  srv.on("/device/modifywifipass", handleModifyWifiPass);
+  srv.on("/device/modifymanagerpass", handleModifyManagerPass);
   srv.on("/device/wifi", handleWifi);
   srv.on("/device/login", handleLogin);
   srv.on("/device/regist", handleRegist);

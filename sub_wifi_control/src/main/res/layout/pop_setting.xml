@@ -5,7 +5,12 @@
     android:layout_height="wrap_content"
     android:background="@android:color/white"
     android:orientation="vertical">
-
+    <Button
+        android:id="@+id/bt_set_wifi_pass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_set_wifi"
+        android:text="修改设备wifi密码" />
     <Button
         android:id="@+id/bt_reset_manage_pass"
         android:layout_width="match_parent"
@@ -17,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/bt_reset_manage_pass"
-        android:text="设置设备wifi" />
+        android:text="设置设备连接wifi" />
 
     <Button
         android:id="@+id/bt_study"

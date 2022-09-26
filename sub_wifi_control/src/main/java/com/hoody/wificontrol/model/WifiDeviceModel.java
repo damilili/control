@@ -95,6 +95,61 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         }
     }
 
+    @Override
+    public void modifyWifiPass(String newPass) {
+        String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
+        if (!TextUtils.isEmpty(serverIp)) {
+            modifyWifiPass(serverIp, newPass);
+        } else {
+            String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+            modifyWifiPass(apIp, newPass);
+        }
+    }
+
+    private void modifyWifiPass(String serverIp, String newPass) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/modifywifipass", null);
+        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+        ReqeuestParam reqeuestParam = new ReqeuestParam();
+        reqeuestParam.put("token", token);
+        reqeuestParam.put("pass", newPass);
+        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+            @Override
+            public void onRequestSuccess(JSONObject result) {
+                if (commonKeyParse(result)) {
+                    return;
+                }
+                int code = result.optInt("code");
+                if (code == 0) {
+                    Messenger.sendTo(IWifiObserver.class).onModifyWifiPassSuccess();
+                } else {
+                    Messenger.sendTo(IWifiObserver.class).onModifyWifiPassFail();
+                }
+            }
+
+            @Override
+            public void onRequestFail(int errCode, String errDes) {
+                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+                if (errCode == -1) {
+                    Logger.i(TAG, "使用ap检查!");
+                    if (!TextUtils.equals(serverIp, apIp)) {
+                        modifyWifiPass(apIp, newPass);
+                    } else {
+                        Logger.i(TAG, "请连接设备wifi!");
+                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
+                    }
+                } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
+                    Logger.i(TAG, "解析异常: ");
+                }
+            }
+        });
+    }
+
     private String studyKeyId;
 
     @Override
@@ -228,7 +283,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void modifyPass(String serverIp, String oldPass, String newPass) {
-        String http_url = UrlUtil.getHttp_Url(serverIp, "device/modifypass", null);
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/modifymanagerpass", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
         reqeuestParam.put("token", token);
@@ -243,8 +298,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 int code = result.optInt("code");
                 if (code == 0) {
                     Messenger.sendTo(IWifiObserver.class).onManagerPassSetSuccess();
-                } else if (code == Code.Code_pass_err) {
-                    Messenger.sendTo(IWifiObserver.class).onPassResetFail();
+                } else {
+                    Messenger.sendTo(IWifiObserver.class).onManagerPassResetFail();
                 }
             }
 
@@ -292,7 +347,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 int code = result.optInt("code");
                 if (code == 0) {
                     Messenger.sendTo(IWifiObserver.class).onSetWifiSuccess();
-                } else if (code == Code.Code_wifi_err) {
+                } else {
                     Messenger.sendTo(IWifiObserver.class).onWifiErr();
                 }
             }
@@ -376,10 +431,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 int code = result.optInt("code");
                 if (code == Code.Code_ok) {
                     Messenger.sendTo(IWifiObserver.class).onManagerPassSetSuccess();
-                } else if (code == Code.Code_muti_regist) {
-                    //已经设置管理员密码
-                    Messenger.sendTo(IWifiObserver.class).onManagerPassSetFail(code);
-                } else if (code == Code.Code_pass_format_err) {
+                } else {
                     //设置失败，秘密格式错误
                     Messenger.sendTo(IWifiObserver.class).onManagerPassSetFail(code);
                 }
