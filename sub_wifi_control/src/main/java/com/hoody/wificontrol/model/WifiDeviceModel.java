@@ -6,12 +6,11 @@ import com.hoody.annotation.model.ModelImpl;
 import com.hoody.commonbase.BaseApplication;
 import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.message.Messenger;
-import com.hoody.commonbase.net.ReqeuestHeader;
 import com.hoody.commonbase.net.ReqeuestParam;
 import com.hoody.commonbase.net.client.HttpClientWrapper;
 import com.hoody.commonbase.util.SharedPreferenceUtil;
 import com.hoody.commonbase.util.SynchronizeUtil;
-import com.hoody.commonbase.util.TimeUtils;
+import com.hoody.commonbase.util.ToastUtil;
 import com.hoody.commonbase.util.UrlUtil;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.ResponseBase;
@@ -19,12 +18,6 @@ import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.WifiUtil;
 
 import org.json.JSONObject;
-
-import java.util.concurrent.TimeUnit;
-
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
 
 /**
  * 客户端状态说明：
@@ -36,6 +29,17 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     private static final String KEY_DEVICE_SERVER_IP = "KEY_DEVICE_SERVER_IP";
     private static final String KEY_DEVICE_SERVER_TOKEN = "KEY_DEVICE_SERVER_TOKEN";
     private static final int MAX_CHECK_STUDY_TIME = 10;
+
+    public interface Code {
+        int Code_ok = 0;
+        int Code_no_regist = 1;    //未注册
+        int Code_token_err = 2;     //令牌错误
+        int Code_wifi_no_set = 3;    //未设置wifi
+        int Code_wifi_err = 4;   //WiFi连接失败
+        int Code_pass_err = 5;  //密码错误
+        int Code_muti_regist = 6; //重复注册
+        int Code_pass_format_err = 7;//秘密格式错误
+    }
 
     @Override
     public void checkDeviceStatus() {
@@ -49,23 +53,23 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     @Override
-    public void setAccessPass(String pass) {
+    public void setManagerPass(String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
         if (!TextUtils.isEmpty(serverIp)) {
-            setAccessPass(serverIp, pass);
+            setManagerPass(serverIp, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
-            setAccessPass(apIp, pass);
+            setManagerPass(apIp, pass);
         }
     }
 
-    public void login(String pass) {
+    public void loginManager(String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
         if (!TextUtils.isEmpty(serverIp)) {
-            login(serverIp, pass);
+            loginManager(serverIp, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
-            login(apIp, pass);
+            loginManager(apIp, pass);
         }
     }
 
@@ -81,7 +85,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     @Override
-    public void modifyPass(String oldPass, String newPass) {
+    public void modifyManagerPass(String oldPass, String newPass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
         if (!TextUtils.isEmpty(serverIp)) {
             modifyPass(serverIp, oldPass, newPass);
@@ -143,6 +147,12 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
@@ -189,6 +199,12 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
@@ -226,8 +242,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 }
                 int code = result.optInt("code");
                 if (code == 0) {
-                    Messenger.sendTo(IWifiObserver.class).onPassSetSuccess();
-                } else {
+                    Messenger.sendTo(IWifiObserver.class).onManagerPassSetSuccess();
+                } else if (code == Code.Code_pass_err) {
                     Messenger.sendTo(IWifiObserver.class).onPassResetFail();
                 }
             }
@@ -244,6 +260,12 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
@@ -263,9 +285,15 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 if (commonKeyParse(result)) {
                     return;
                 }
+                String serverIp = result.optString("wifiIp");
+                if (!TextUtils.isEmpty(serverIp)) {
+                    SharedPreferenceUtil.getInstance().saveSharedPreferences(KEY_DEVICE_SERVER_IP, serverIp);
+                }
                 int code = result.optInt("code");
                 if (code == 0) {
                     Messenger.sendTo(IWifiObserver.class).onSetWifiSuccess();
+                } else if (code == Code.Code_wifi_err) {
+                    Messenger.sendTo(IWifiObserver.class).onWifiErr();
                 }
             }
 
@@ -281,13 +309,19 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
         });
     }
 
-    private void login(String serverIp, String pass) {
+    private void loginManager(String serverIp, String pass) {
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/login", null);
         ReqeuestParam reqeuestParam = new ReqeuestParam();
         reqeuestParam.put("pass", pass);
@@ -299,9 +333,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 }
                 int code = result.optInt("code");
                 if (code == 0) {
-                    Messenger.sendTo(IWifiObserver.class).onLoginSuccess();
+                    Messenger.sendTo(IWifiObserver.class).onManagerLoginSuccess();
                 } else {
-                    Messenger.sendTo(IWifiObserver.class).onLoginFail();
+                    Messenger.sendTo(IWifiObserver.class).onManagerLoginFail();
                 }
             }
 
@@ -311,23 +345,27 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 if (errCode == -1) {
                     Logger.i(TAG, "使用ap检查!");
                     if (!TextUtils.equals(serverIp, apIp)) {
-                        login(apIp, pass);
+                        loginManager(apIp, pass);
                     } else {
                         Logger.i(TAG, "请连接设备wifi!");
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
         });
     }
 
-    private void setAccessPass(String serverIp, String pass) {
-        String http_url = UrlUtil.getHttp_Url(serverIp, "device/setpass", null);
-        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+    private void setManagerPass(String serverIp, String pass) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/regist", null);
         ReqeuestParam reqeuestParam = new ReqeuestParam();
-        reqeuestParam.put("token", token);
         reqeuestParam.put("pass", pass);
         HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
             @Override
@@ -336,8 +374,14 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                     return;
                 }
                 int code = result.optInt("code");
-                if (code == 0) {
-                    Messenger.sendTo(IWifiObserver.class).onPassSetSuccess();
+                if (code == Code.Code_ok) {
+                    Messenger.sendTo(IWifiObserver.class).onManagerPassSetSuccess();
+                } else if (code == Code.Code_muti_regist) {
+                    //已经设置管理员密码
+                    Messenger.sendTo(IWifiObserver.class).onManagerPassSetFail(code);
+                } else if (code == Code.Code_pass_format_err) {
+                    //设置失败，秘密格式错误
+                    Messenger.sendTo(IWifiObserver.class).onManagerPassSetFail(code);
                 }
             }
 
@@ -347,12 +391,18 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 if (errCode == -1) {
                     Logger.i(TAG, "使用ap检查!");
                     if (!TextUtils.equals(serverIp, apIp)) {
-                        setAccessPass(apIp, pass);
+                        setManagerPass(apIp, pass);
                     } else {
                         Logger.i(TAG, "请连接设备wifi!");
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
@@ -364,8 +414,6 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
         reqeuestParam.put("token", token);
-        ReqeuestHeader reqeuestHeader = new ReqeuestHeader();
-        reqeuestHeader.put("token", token);
         HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
             @Override
             public void onRequestSuccess(JSONObject result) {
@@ -390,6 +438,12 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                         Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
                     }
                 } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
                     Logger.i(TAG, "解析异常: ");
                 }
             }
@@ -397,35 +451,26 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private boolean commonKeyParse(JSONObject result) {
-        String serverIp = result.optString("serverIp");
         String token = result.optString("token");
         if (!TextUtils.isEmpty(token)) {
             SharedPreferenceUtil.getInstance().saveSharedPreferences(KEY_DEVICE_SERVER_TOKEN, token);
         }
-        if (!TextUtils.isEmpty(serverIp)) {
-            SharedPreferenceUtil.getInstance().saveSharedPreferences(KEY_DEVICE_SERVER_IP, serverIp);
-        }
         int code = result.optInt("code");
         switch (code) {
-            case 1:
+            case Code.Code_no_regist:
                 //服务端没有设备管理密码（没有token） --->请设置密码
                 Messenger.sendTo(IWifiObserver.class).onDeviceManagerPassNull();
                 Logger.i(TAG, "请输入设备管理密码: ");
                 return true;
-            case 2:
+            case Code.Code_token_err:
                 //存在密码但是token不正确--->请输入密码
                 Messenger.sendTo(IWifiObserver.class).onDeviceManagerPassErr();
                 Logger.i(TAG, "请输入正确的设备管理密码: ");
                 return true;
-            case 3:
+            case Code.Code_wifi_no_set:
                 //设备没有WiFi连接信息  --->请设置wifi
                 Messenger.sendTo(IWifiObserver.class).onWifiNull();
                 Logger.i(TAG, "请选择需要链接的wifi: ");
-                return true;
-            case 4:
-                //wifi链接信息不可用 --->请设置wifi
-                Messenger.sendTo(IWifiObserver.class).onWifiErr();
-                Logger.i(TAG, "请选择正确链接的wifi: ");
                 return true;
         }
         return false;

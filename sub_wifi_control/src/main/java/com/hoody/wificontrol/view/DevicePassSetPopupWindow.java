@@ -1,7 +1,6 @@
 package com.hoody.wificontrol.view;
 
 import android.content.Context;
-import android.text.Editable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -30,14 +29,14 @@ public class DevicePassSetPopupWindow extends PopupWindow {
             public void onClick(View v) {
                 String pass = et_device_pass.getText().toString();
                 if (pass.length() < 8) {
-                    ToastUtil.showToast(v.getContext(), "访问密码不能小于8位");
+                    ToastUtil.showToast(v.getContext(), "管理员密码不能小于8位");
                     return;
                 }
                 if (!et_device_pass.getText().toString().equals(et_device_pass_sure.getText().toString())) {
-                    ToastUtil.showToast(v.getContext(), "两次输入的密码不一致");
+                    ToastUtil.showToast(v.getContext(), "两次输入不一致");
                     return;
                 }
-                ModelManager.getModel(IWifiDeviceModel.class).setAccessPass(pass);
+                ModelManager.getModel(IWifiDeviceModel.class).setManagerPass(pass);
                 dismiss();
             }
         });

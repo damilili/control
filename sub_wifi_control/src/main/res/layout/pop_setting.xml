@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/bt_reset_manage_pass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="修改设备管理密码" />
+
+    <Button
+        android:id="@+id/bt_set_wifi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_reset_manage_pass"
+        android:text="设置设备wifi" />
+
+    <Button
+        android:id="@+id/bt_study"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_set_wifi"
+        android:text="按键学习" />
+
+</LinearLayout>

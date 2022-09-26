@@ -24,7 +24,7 @@ public class DevicePassInputPopupWindow extends PopupWindow {
             @Override
             public void onClick(View v) {
                 String s = ((EditText) popView.findViewById(R.id.et_device_pass)).getText().toString();
-                ModelManager.getModel(IWifiDeviceModel.class).login(s);
+                ModelManager.getModel(IWifiDeviceModel.class).loginManager(s);
                 dismiss();
             }
         });

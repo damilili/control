@@ -1,7 +1,6 @@
 package com.hoody.wificontrol.view;
 
 import android.content.Context;
-import android.text.Editable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -40,7 +39,7 @@ public class DevicePassResetPopupWindow extends PopupWindow {
                     ToastUtil.showToast(v.getContext(), "两次输入的密码不一致");
                     return;
                 }
-                ModelManager.getModel(IWifiDeviceModel.class).modifyPass(oldPass,newPass);
+                ModelManager.getModel(IWifiDeviceModel.class).modifyManagerPass(oldPass,newPass);
                 dismiss();
             }
         });

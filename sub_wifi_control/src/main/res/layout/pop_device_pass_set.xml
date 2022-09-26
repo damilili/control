@@ -15,7 +15,7 @@
         android:gravity="center"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
-        android:text="请为设备设置访问密码"
+        android:text="设置管理员密码"
         android:textColor="@android:color/white"
         android:textSize="14sp" />
 
@@ -24,7 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tv_titile"
-        android:hint="请输入访问密码"
+        android:hint="请输入管理员密码"
         android:inputType="textPassword"
         android:textSize="14sp" />
 
@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/et_device_pass"
-        android:hint="请再次输入访问密码"
+        android:hint="请再次输入管理员密码"
         android:inputType="textPassword"
         android:textSize="14sp" />
 

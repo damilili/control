@@ -8,13 +8,13 @@ public interface IWifiDeviceModel extends IModel {
      */
     void checkDeviceStatus();
 
-    void setAccessPass(String pass);
+    void setManagerPass(String pass);
 
-    void login(String pass);
+    void loginManager(String pass);
+
+    void modifyManagerPass(String oldPass, String newPass);
 
     void setWifiInfo(String wifiName, String pass);
-
-    void modifyPass(String oldPass, String newPass);
 
     void studyKey(String keyId);
 

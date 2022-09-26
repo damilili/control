@@ -22,13 +22,16 @@ public interface IWifiObserver extends IMessageObserver {
     default void onNoFoundDevices() {
     }
 
-    default void onPassSetSuccess() {
+    default void onManagerPassSetSuccess() {
     }
 
-    default void onLoginSuccess() {
+    default void onManagerPassSetFail(int code) {
     }
 
-    default void onLoginFail() {
+    default void onManagerLoginSuccess() {
+    }
+
+    default void onManagerLoginFail() {
     }
 
     default void onSetWifiSuccess() {
@@ -39,5 +42,6 @@ public interface IWifiObserver extends IMessageObserver {
     void onStudySuccess(String keyId, int preCode, int userCode, int dataCode);
 
     void onStudyFail(String keyId);
+
 
 }

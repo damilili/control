@@ -28,7 +28,6 @@ import com.hoody.commonbase.view.fragment.SwipeBackFragment;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.R;
-import com.hoody.wificontrol.WifiUtil;
 
 @Router("wificontrol/main")
 @Permissions({Manifest.permission.ACCESS_WIFI_STATE,
@@ -83,24 +82,29 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
         };
         controller_pager.setAdapter(fragmentStateAdapter);
         getSwipeBackLayout().addDecider(SlideDecidableLayout.DeciderProduceUtil.getViewSlidableDecider(controller_pager));
-
-        findViewById(R.id.bt_reset_manage_pass).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DevicePassResetPopupWindow devicePassResetPopupWindow = new DevicePassResetPopupWindow(getContext());
-                devicePassResetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-            }
-        });
-        findViewById(R.id.bt_set_wifi).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showWifiSet();
-            }
-        });
-        findViewById(R.id.bt_study).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ModelManager.getModel(IWifiDeviceModel.class).studyKey("123");
+                SettingPopupWindow settingPopupWindow = new SettingPopupWindow(getContext());
+                settingPopupWindow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        settingPopupWindow.dismiss();
+                        switch (((String) v.getTag())) {
+                            case SettingPopupWindow.ITEM_SET_WIFI:
+                                showWifiSet();
+                                break;
+                            case SettingPopupWindow.ITEM_RESET_PASS:
+                                DevicePassResetPopupWindow devicePassResetPopupWindow = new DevicePassResetPopupWindow(getContext());
+                                devicePassResetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+                                break;
+                            case SettingPopupWindow.ITEM_STUDY:
+                                ModelManager.getModel(IWifiDeviceModel.class).studyKey("123");
+                                break;
+                        }
+                    }
+                });
+                settingPopupWindow.showAsDropDown(v);
             }
         });
     }
@@ -136,7 +140,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     }
 
     @Override
-    public void onPassSetSuccess() {
+    public void onManagerPassSetSuccess() {
         ToastUtil.showToast(getContext(), "设置成功");
         if (mDevicePassSetPopupWindow != null) {
             mDevicePassSetPopupWindow.dismiss();
@@ -167,7 +171,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     }
 
     @Override
-    public void onLoginSuccess() {
+    public void onManagerLoginSuccess() {
         if (mDevicePassInputPopupWindow != null) {
             mDevicePassInputPopupWindow.dismiss();
         }
@@ -175,8 +179,8 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     }
 
     @Override
-    public void onLoginFail() {
-        ToastUtil.showToast(getContext(), "认证失败");
+    public void onManagerLoginFail() {
+        ToastUtil.showToast(getContext(), "登录认证失败");
     }
 
     @Override
@@ -200,6 +204,11 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
 
     @Override
     public void onStudyFail(String keyId) {
+
+    }
+
+    @Override
+    public void onManagerPassSetFail(int code) {
 
     }
 }
