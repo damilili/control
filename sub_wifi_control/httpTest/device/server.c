@@ -42,6 +42,7 @@ void savaProperties() {
   if (propertiesFile) {
     if (propertiesFile.available()) {
       String properties;
+      jsonBuffer.clear();
       jsonBuffer["pass"] = accessPass;
       jsonBuffer["token"] = token;
       jsonBuffer["wifiName"] = wifiName;
