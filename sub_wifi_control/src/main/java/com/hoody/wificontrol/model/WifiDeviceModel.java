@@ -336,7 +336,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         reqeuestParam.put("wifiName", wifiName);
         reqeuestParam.put("pass", pass);
         ReqeuestHeader reqeuestHeader = new ReqeuestHeader();
-        reqeuestHeader.put("readTimeout","10000");
+        reqeuestHeader.put("readTimeout","15");
         HttpClientWrapper.getClient().post(http_url, reqeuestHeader, reqeuestParam, new ResponseBase() {
             @Override
             public void onRequestSuccess(JSONObject result) {
