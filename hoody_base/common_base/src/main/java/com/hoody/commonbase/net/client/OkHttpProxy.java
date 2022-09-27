@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -45,9 +46,8 @@ import okhttp3.ResponseBody;
 
 class OkHttpProxy implements IHttpRequestClient {
     private static OkHttpProxy HttpProxy = null;
-
+    private Dns dns = null;
     private OkHttpProxy() {
-        Dns dns = null;
         try {
             IResolver[] resolvers = new IResolver[1];
             InetAddress byName = InetAddress.getByName("119.29.29.29");
@@ -107,7 +107,8 @@ class OkHttpProxy implements IHttpRequestClient {
                 }
             }
         }
-        final Call call = mClient.newCall(builder.build());
+        OkHttpClient client = getOkHttpClient(header);
+        final Call call = client.newCall(builder.build());
         RequestControl requestControl = new RequestControl() {
             @Override
             public void cancel() {
@@ -176,7 +177,9 @@ class OkHttpProxy implements IHttpRequestClient {
                 }
             }
         }
-        final Call call = mClient.newCall(builder.build());
+
+        OkHttpClient client = getOkHttpClient(header);
+        final Call call = client.newCall(builder.build());
         RequestControl requestControl = new RequestControl() {
             @Override
             public void cancel() {
@@ -201,6 +204,41 @@ class OkHttpProxy implements IHttpRequestClient {
             }
         });
         return requestControl;
+    }
+
+    private OkHttpClient getOkHttpClient(Map<String, String> header) {
+        OkHttpClient client = mClient;
+        if (header != null) {
+            OkHttpClient.Builder builder1 = new OkHttpClient.Builder();
+            int time;
+            if (header.containsKey("readTimeout")) {
+                String readTimeout = header.get("readTimeout");
+                time = Integer.parseInt(readTimeout);
+                if (time > 0) {
+                    builder1.readTimeout(time, TimeUnit.SECONDS);
+                }
+                header.remove("readTimeout");
+            }
+            if (header.containsKey("connectTimeout")) {
+                String connectTimeout = header.get("connectTimeout");
+                time = Integer.parseInt(connectTimeout);
+                if (time > 0) {
+                    builder1.connectTimeout(time, TimeUnit.SECONDS);
+                }
+                header.remove("connectTimeout");
+            }
+            if (header.containsKey("writeTimeout")) {
+                String writeTimeout = header.get("writeTimeout");
+                time = Integer.parseInt(writeTimeout);
+                if (time > 0) {
+                    builder1.writeTimeout(time, TimeUnit.SECONDS);
+                }
+                header.remove("writeTimeout");
+            }
+            builder1.dns(dns);
+            client = builder1.build();
+        }
+        return client;
     }
 
     @Override

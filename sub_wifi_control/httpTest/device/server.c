@@ -85,14 +85,12 @@ void handleModifyWifiPass() {
   }
   String cToken;
   String cPass;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("token")) {
-      cToken = srv.arg(i);
-      break;
-    } else if (srv.argName(i).equals("pass")) {
-      cPass = srv.arg(i);
-      break;
-    }
+
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cPass.concat((const char*)jsonBuffer["pass"]);
+    cToken.concat((const char*)jsonBuffer["token"]);
+    jsonBuffer.clear();
   }
   if (token.length() > 0 && token != cToken) {
     jsonBuffer["code"] = Code_token_err;
@@ -131,12 +129,11 @@ void handleModifyManagerPass() {
   }
   String cOldPass;
   String cNewPass;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("oldPass")) {
-      cOldPass = srv.arg(i);
-    } else if (srv.argName(i).equals("newPass")) {
-      cNewPass = srv.arg(i);
-    }
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cOldPass.concat((const char*)jsonBuffer["oldPass"]);
+    cNewPass.concat((const char*)jsonBuffer["newPass"]);
+    jsonBuffer.clear();
   }
   if (cNewPass.length() < 8 || cNewPass.length() > 20) {
     jsonBuffer["code"] = Code_pass_format_err;
@@ -174,14 +171,12 @@ void handleWifi() {
   String cToken;
   String cWifiName;
   String cPass;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("token")) {
-      cToken = srv.arg(i);
-    } else if (srv.argName(i).equals("wifiName")) {
-      cWifiName = srv.arg(i);
-    } else if (srv.argName(i).equals("pass")) {
-      cPass = srv.arg(i);
-    }
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cPass.concat((const char*)jsonBuffer["pass"]);
+    cWifiName.concat((const char*)jsonBuffer["wifiName"]);
+    cToken.concat((const char*)jsonBuffer["token"]);
+    jsonBuffer.clear();
   }
   if (token.length() > 0 && token != cToken) {
     jsonBuffer["code"] = Code_token_err;
@@ -197,6 +192,7 @@ void handleWifi() {
     delay(500);
     Serial.print(".");
     if (millis() - startMillis > 10000) {
+       Serial.print("-");
       jsonBuffer["code"] = Code_wifi_err;
       serializeJson(jsonBuffer, output);
       // 连接wifi超时
@@ -234,11 +230,10 @@ void handleLogin() {
   }
 
   String cPass;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("pass")) {
-      cPass = srv.arg(i);
-      break;
-    }
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cPass.concat((const char*)jsonBuffer["pass"]);
+    jsonBuffer.clear();
   }
   if (accessPass.length() > 0 && accessPass.equals(cPass)) {
     refreshToken();
@@ -267,12 +262,12 @@ void handleRegist() {
     return;
   }
   String cPass;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("pass")) {
-      cPass = srv.arg(i);
-      break;
-    }
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cPass.concat((const char*)jsonBuffer["pass"]);
+    jsonBuffer.clear();
   }
+
   if (cPass.length() < 8 || cPass.length() > 20) {
     jsonBuffer["code"] = Code_pass_format_err;
   } else {
@@ -290,13 +285,12 @@ int checkStatus() {
     return Code_no_regist;
   }
   String cToken;
-  for (int i = 0; i < srv.args(); i++) {
-    if (srv.argName(i).equals("token")) {
-      cToken = srv.arg(i);
-      break;
-    }
+  if (srv.args() > 0) {
+    deserializeJson(jsonBuffer, srv.arg(0));
+    cToken.concat((const char*)jsonBuffer["token"]);
+    jsonBuffer.clear();
   }
-  if (token.length() > 0 && token != cToken) {
+  if (token.length() > 0 && !token.equals(cToken)) {
     return Code_token_err;
   }
   if (wifiName == "") {
@@ -384,6 +378,7 @@ void setup() {
       }
     }
   }
+  srv.keepAlive(true);
   // srv.on("/", handleRoot);
   // srv.on("/post/", handleData);
   // srv.on("/device/study", handleData);

@@ -6,6 +6,7 @@ import com.hoody.annotation.model.ModelImpl;
 import com.hoody.commonbase.BaseApplication;
 import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.message.Messenger;
+import com.hoody.commonbase.net.ReqeuestHeader;
 import com.hoody.commonbase.net.ReqeuestParam;
 import com.hoody.commonbase.net.client.HttpClientWrapper;
 import com.hoody.commonbase.util.SharedPreferenceUtil;
@@ -38,7 +39,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         int Code_wifi_err = 4;   //WiFi连接失败
         int Code_pass_err = 5;  //密码错误
         int Code_muti_regist = 6; //重复注册
-        int Code_pass_format_err = 7;//秘密格式错误
+        int Code_pass_format_err = 7;//密码格式错误
     }
 
     @Override
@@ -334,7 +335,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         reqeuestParam.put("token", token);
         reqeuestParam.put("wifiName", wifiName);
         reqeuestParam.put("pass", pass);
-        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+        ReqeuestHeader reqeuestHeader = new ReqeuestHeader();
+        reqeuestHeader.put("readTimeout","10000");
+        HttpClientWrapper.getClient().post(http_url, reqeuestHeader, reqeuestParam, new ResponseBase() {
             @Override
             public void onRequestSuccess(JSONObject result) {
                 if (commonKeyParse(result)) {
