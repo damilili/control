@@ -28,6 +28,7 @@ import com.hoody.commonbase.view.fragment.SwipeBackFragment;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.R;
+import com.hoody.wificontrol.model.WifiDeviceModel;
 
 @Router("wificontrol/main")
 @Permissions({Manifest.permission.ACCESS_WIFI_STATE,
@@ -201,13 +202,22 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
     }
 
     @Override
-    public void onStudySuccess(String keyId, int preCode, int userCode, int dataCode) {
-        ToastUtil.showToast(getContext(), "学习成功");
+    public void onStudySuccess(String keyId, String data) {
+        ToastUtil.showToast(getContext(), "学习成功 :" + data);
     }
 
     @Override
-    public void onStudyFail(String keyId) {
-
+    public void onStudyFail(int code, String keyId) {
+        if (code == WifiDeviceModel.Code.Code_study_key_err) {
+            //按键输入错误
+            ToastUtil.showToast(getContext(), "学习失败 :按键输入错误");
+        } else if (code == WifiDeviceModel.Code.Code_being_study_other) {
+            //正在学习其他按键
+            ToastUtil.showToast(getContext(), "学习失败 :正在学习其他按键");
+        } else if (code == WifiDeviceModel.Code.Code_study_outtime) {
+            //按键学习超时
+            ToastUtil.showToast(getContext(), "学习失败 :按键学习超时");
+        }
     }
 
     @Override

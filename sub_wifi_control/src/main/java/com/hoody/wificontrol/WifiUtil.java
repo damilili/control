@@ -201,9 +201,23 @@ public class WifiUtil {
         DhcpInfo dhcpinfo = wifiManager.getDhcpInfo();
         String serverAddress = intToIp(dhcpinfo.serverAddress);
         Log.e(TAG, "serverAddress-->>" + serverAddress);
+        String ssid = wifiInfo.getSSID();
+        Log.e(TAG, "ssid-->>" + ssid);
         return serverAddress;
     }
-
+    /**
+     * 获取路由器name
+     */
+    public static String getApName(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (!wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(true);
+        }
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        String ssid = wifiInfo.getSSID();
+        Log.e(TAG, "ssid-->>" + ssid);
+        return ssid;
+    }
     private static String intToIp(int paramInt) {
         return (paramInt & 0xFF) + "." + (0xFF & paramInt >> 8) + "." + (0xFF & paramInt >> 16) + "."
                 + (0xFF & paramInt >> 24);

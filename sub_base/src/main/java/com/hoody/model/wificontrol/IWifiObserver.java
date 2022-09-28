@@ -40,10 +40,10 @@ public interface IWifiObserver extends IMessageObserver {
     default void onManagerPassResetFail() {
     }
 
-    default void onStudySuccess(String keyId, int preCode, int userCode, int dataCode) {
+    default void onStudySuccess(String keyId, String data) {
     }
 
-    default void onStudyFail(String keyId) {
+    default void onStudyFail(int code,String keyId) {
     }
 
 

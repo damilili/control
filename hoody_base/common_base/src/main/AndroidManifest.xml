@@ -27,6 +27,7 @@
         </service>
 
         <activity
+            android:theme="@style/common_base_Theme.Base"
             android:name=".view.activity.DefaultContentActivity"
             android:launchMode="singleTask" />
     </application>

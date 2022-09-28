@@ -13,6 +13,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="wifi遥控模块"
+        android:theme="@style/sub_wifi_control_Theme.WifiControl"
         android:supportsRtl="true">
         <activity android:name=".MainActivity">
             <intent-filter>

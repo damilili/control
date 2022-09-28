@@ -40,12 +40,17 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         int Code_pass_err = 5;  //密码错误
         int Code_muti_regist = 6; //重复注册
         int Code_pass_format_err = 7;//密码格式错误
+        int Code_study_key_err = 8;     //学习的按键id不能是空
+        int Code_being_study_other = 9;//正在学习其他按键中
+        int Code_study_outtime = 10;   //学习超时
     }
+
 
     @Override
     public void checkDeviceStatus() {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             checkDeviceStatus(serverIp);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -56,7 +61,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void setManagerPass(String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             setManagerPass(serverIp, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -66,7 +72,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
 
     public void loginManager(String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             loginManager(serverIp, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -77,7 +84,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void setWifiInfo(String wifiName, String pass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             setWifi(serverIp, wifiName, pass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -88,7 +96,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void modifyManagerPass(String oldPass, String newPass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             modifyPass(serverIp, oldPass, newPass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -99,7 +108,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void modifyWifiPass(String newPass) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             modifyWifiPass(serverIp, newPass);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -156,7 +166,8 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void studyKey(String keyId) {
         String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
-        if (!TextUtils.isEmpty(serverIp)) {
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
             studyKey(serverIp, keyId);
         } else {
             String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
@@ -182,12 +193,17 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                     return;
                 }
                 int code = result.optInt("code");
-                if (code == 0) {
+                String data = result.optString("data");
+                if (code == Code.Code_ok) {
                     checkStudyCount = 0;
-                    studyKeyId = keyId;
-                    getStudyResultDelay(serverIp);
+                    if (!TextUtils.isEmpty(data)) {
+                        Messenger.sendTo(IWifiObserver.class).onStudySuccess(studyKeyId, data);
+                    } else {
+                        studyKeyId = keyId;
+                        getStudyResultDelay(serverIp);
+                    }
                 } else {
-                    Messenger.sendTo(IWifiObserver.class).onStudyFail(keyId);
+                    Messenger.sendTo(IWifiObserver.class).onStudyFail(code, keyId);
                 }
             }
 
@@ -214,59 +230,6 @@ public class WifiDeviceModel implements IWifiDeviceModel {
             }
         });
     }
-
-    private void getStudyResult(String serverIp, String keyId) {
-        String http_url = UrlUtil.getHttp_Url(serverIp, "device/getStudyResult", null);
-        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
-        ReqeuestParam reqeuestParam = new ReqeuestParam();
-        reqeuestParam.put("token", token);
-        reqeuestParam.put("keyid", keyId);
-        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
-            @Override
-            public void onRequestSuccess(JSONObject result) {
-                if (commonKeyParse(result)) {
-                    endStudyKey();
-                    return;
-                }
-                int code = result.optInt("code");
-                if (code == 0) {
-                    endStudyKey();
-                    int preCode = result.optInt("preCode");
-                    int userCode = result.optInt("userCode");
-                    int dataCode = result.optInt("dataCode");
-                    Messenger.sendTo(IWifiObserver.class).onStudySuccess(keyId, preCode, userCode, dataCode);
-                } else if (code == 7) {
-                    getStudyResultDelay(serverIp);
-                } else {
-                    endStudyKey();
-                    Messenger.sendTo(IWifiObserver.class).onStudyFail(keyId);
-                }
-            }
-
-            @Override
-            public void onRequestFail(int errCode, String errDes) {
-                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
-                if (errCode == -1) {
-                    Logger.i(TAG, "使用ap检查!");
-                    if (!TextUtils.equals(serverIp, apIp)) {
-                        getStudyResult(apIp, keyId);
-                    } else {
-                        Logger.i(TAG, "请连接设备wifi!");
-                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
-                    }
-                } else if (errCode == -2) {
-                    SynchronizeUtil.runMainThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
-                        }
-                    });
-                    Logger.i(TAG, "解析异常: ");
-                }
-            }
-        });
-    }
-
     int checkStudyCount = 0;
 
     private void getStudyResultDelay(String serverIp) {
@@ -278,7 +241,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
             @Override
             public void run() {
                 checkStudyCount++;
-                getStudyResult(serverIp, studyKeyId);
+                studyKey(serverIp, studyKeyId);
             }
         }, 1000);
     }
