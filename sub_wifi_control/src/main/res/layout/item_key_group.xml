@@ -3,14 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="10dp"
     tools:context=".view.ControllerFragment">
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/ls_key_group"
         android:layout_width="match_parent"
+        android:background="@drawable/key_group_back"
         android:layout_height="match_parent"
-        android:background="@android:color/transparent" />
+        android:padding="10dp" />
 
 
 </FrameLayout>

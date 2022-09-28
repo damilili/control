@@ -75,7 +75,7 @@ public class MainFragment extends SwipeBackFragment implements IWifiObserver {
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                Fragment instantiate = fragmentFactory.instantiate(getClass().getClassLoader(), "com.hoody.wificontrol.view.ControllerFragment");
+                Fragment instantiate = fragmentFactory.instantiate(getClass().getClassLoader(), "com.hoody.wificontrol.view.TVControllerFragment");
                 Bundle args = new Bundle();
                 args.putInt("position", position);
                 instantiate.setArguments(args);
