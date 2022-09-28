@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public abstract class KeyGroup extends KeboardItem{
+public abstract class KeyGroup extends KeyboardItem {
     public abstract GridLayoutManager getLayoutManager(Context context);
 
     public abstract List<DividerItemDecoration> getDividerItemDecorations(Context context);

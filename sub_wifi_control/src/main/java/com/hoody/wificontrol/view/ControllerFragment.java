@@ -20,8 +20,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.hoody.wificontrol.model.KeboardItem;
-import com.hoody.wificontrol.model.Key;
+import com.hoody.wificontrol.model.KeyboardItem;
+import com.hoody.wificontrol.model.SingleKey;
 import com.hoody.wificontrol.model.DirKeyGroup;
 import com.hoody.wificontrol.model.KeyNumGroup;
 import com.hoody.wificontrol.R;
@@ -31,12 +31,9 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class ControllerFragment extends Fragment {
-    private KeboardItem[] mItems = new KeboardItem[]{
+    private KeyboardItem[] mItems = new KeyboardItem[]{
             new DirKeyGroup(),
             new KeyNumGroup(),
-            new Key(1, "n", (byte) 0, (byte) 0, (byte) 0),
-            new Key(1, "n", (byte) 0, (byte) 0, (byte) 0),
-            new Key(1, "n", (byte) 0, (byte) 0, (byte) 0),
     };
 
     public ControllerFragment() {
@@ -97,7 +94,7 @@ public class ControllerFragment extends Fragment {
         decorH.setDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         ls_keyboard.addItemDecoration(decorH);
-        RecyclerView.Adapter adapter = new MainAdapter(new ArrayList<KeboardItem>(Arrays.asList(mItems)));
+        RecyclerView.Adapter adapter = new MainAdapter(new ArrayList<KeyboardItem>(Arrays.asList(mItems)));
         ls_keyboard.setAdapter(adapter);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new MyTouchEvent());
         itemTouchHelper.attachToRecyclerView(ls_keyboard);
@@ -119,7 +116,7 @@ public class ControllerFragment extends Fragment {
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
             int adapterPosition = viewHolder.getAdapterPosition();
             int adapterPosition1 = target.getAdapterPosition();
-            Collections.swap( ((MainAdapter) recyclerView.getAdapter()).mKeboardItems,adapterPosition,adapterPosition1);
+            Collections.swap( ((MainAdapter) recyclerView.getAdapter()).mKeyboardItems,adapterPosition,adapterPosition1);
             recyclerView.getAdapter().notifyItemMoved(adapterPosition, adapterPosition1);
             return true;
         }
@@ -147,10 +144,10 @@ public class ControllerFragment extends Fragment {
     }
 
     static class MainAdapter extends RecyclerView.Adapter {
-        private ArrayList<KeboardItem> mKeboardItems;
+        private ArrayList<KeyboardItem> mKeyboardItems;
 
-        public MainAdapter(ArrayList<KeboardItem> keboardItems) {
-            mKeboardItems = keboardItems;
+        public MainAdapter(ArrayList<KeyboardItem> keyboardItems) {
+            mKeyboardItems = keyboardItems;
         }
 
         @NonNull
@@ -166,21 +163,21 @@ public class ControllerFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof KeyHolder) {
-                ((KeyHolder) holder).key.setText(((Key) mKeboardItems.get(position)).getName());
+                ((KeyHolder) holder).key.setText(((SingleKey) mKeyboardItems.get(position)).getName());
             } else {
-                ((KeyGroupHolder) holder).keyGroup.setAdapter(((DirKeyGroup) mKeboardItems.get(position)).getGroupAdapter());
-                ((KeyGroupHolder) holder).keyGroup.setLayoutManager(((DirKeyGroup) mKeboardItems.get(position)).getLayoutManager(holder.itemView.getContext()));
+                ((KeyGroupHolder) holder).keyGroup.setAdapter(((DirKeyGroup) mKeyboardItems.get(position)).getGroupAdapter());
+                ((KeyGroupHolder) holder).keyGroup.setLayoutManager(((DirKeyGroup) mKeyboardItems.get(position)).getLayoutManager(holder.itemView.getContext()));
             }
         }
 
         @Override
         public int getItemCount() {
-            return mKeboardItems.size();
+            return mKeyboardItems.size();
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (mKeboardItems.get(position) instanceof Key) {
+            if (mKeyboardItems.get(position) instanceof SingleKey) {
                 return 0;
             } else {
                 return 1;

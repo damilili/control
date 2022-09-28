@@ -63,14 +63,23 @@ public class DirKeyGroup extends KeyGroup {
     public RecyclerView.Adapter getGroupAdapter() {
         return mGroupAdapter;
     }
-
+//#44 99 向左
+//#44 83 向右
+//#44 53 向上
+//#44 4b 向下
+//#44 a9 返回
     private RecyclerView.Adapter mGroupAdapter = new RecyclerView.Adapter() {
-        public Key[] mKeys = new Key[]{
-                new Key(1, "上", (byte) 49, (byte) 0x44, (byte) 0x53),
-                new Key(3, "左", (byte) 49, (byte) 0x44, (byte) 0x99),
-                new Key(5, "确定", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(4, "右", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(2, "下", (byte) 49, (byte) 0x44, (byte) 0x4b)
+        public SingleKey[] mSingleKeys = new SingleKey[]{
+                new SingleKey(6, "菜单", ""),
+                new SingleKey(1, "上", "000000000100010001010011"),
+                new SingleKey(7, "首页", ""),
+//                00000000 01000100 10011001
+                new SingleKey(3, "左", "000000000100010010011001"),
+                new SingleKey(5, "确定", ""),
+                new SingleKey(4, "右", "000000000100010010000011"),
+                new SingleKey(8, "返回", "000000000100010010101001"),
+                new SingleKey(2, "下", "000000000100010001001011"),
+                new SingleKey(8, "退出", ""),
         };
 
         @NonNull
@@ -84,33 +93,12 @@ public class DirKeyGroup extends KeyGroup {
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            if (holder instanceof KeyHolder) {
-                switch (position) {
-                    case 1:
-                        ((KeyHolder) holder).key.setText(mKeys[0].getName());
-                        break;
-                    case 3:
-                        ((KeyHolder) holder).key.setText(mKeys[1].getName());
-                        break;
-                    case 4:
-                        ((KeyHolder) holder).key.setText(mKeys[2].getName());
-                        break;
-                    case 5:
-                        ((KeyHolder) holder).key.setText(mKeys[3].getName());
-                        break;
-                    case 7:
-                        ((KeyHolder) holder).key.setText(mKeys[4].getName());
-                        break;
-                }
-            }
+            ((KeyHolder) holder).key.setText(mSingleKeys[position].getName());
+            ((KeyHolder) holder).key.setTag(mSingleKeys[position]);
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (position == 0 || position == 2 ||
-                    position == 6 || position == 8) {
-                return 0;
-            }
             return 1;
         }
 
@@ -120,12 +108,29 @@ public class DirKeyGroup extends KeyGroup {
         }
     };
 
-    static class KeyHolder extends RecyclerView.ViewHolder {
+    class KeyHolder extends RecyclerView.ViewHolder {
         private final TextView key;
 
         public KeyHolder(@NonNull View itemView) {
             super(itemView);
             key = ((TextView) itemView.findViewById(R.id.item_key));
+            key.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mOnStudyListener != null) {
+                        mOnStudyListener.OnClick(v, ((SingleKey) v.getTag()));
+                    }
+                }
+            });
+            key.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (mOnStudyListener != null) {
+                        mOnStudyListener.OnStudy(v, ((SingleKey) v.getTag()));
+                    }
+                    return true;
+                }
+            });
         }
     }
 

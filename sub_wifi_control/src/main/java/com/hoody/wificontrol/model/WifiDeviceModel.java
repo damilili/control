@@ -3,6 +3,7 @@ package com.hoody.wificontrol.model;
 import android.text.TextUtils;
 
 import com.hoody.annotation.model.ModelImpl;
+import com.hoody.annotation.model.ModelManager;
 import com.hoody.commonbase.BaseApplication;
 import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.message.Messenger;
@@ -178,6 +179,61 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     @Override
     public void endStudyKey() {
         studyKeyId = "0";
+    }
+
+    @Override
+    public void sendSignal(String signal) {
+        String serverIp = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_IP, "");
+        String apName = WifiUtil.getApName(BaseApplication.getInstance());
+        if (!apName.equals("\"WifiControl\"")) {
+            sendSignal(serverIp, signal);
+        } else {
+            String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+            sendSignal(apIp, signal);
+        }
+
+    }
+
+    public void sendSignal(String serverIp, String signal) {
+        String http_url = UrlUtil.getHttp_Url(serverIp, "device/sendsign", null);
+        String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
+        ReqeuestParam reqeuestParam = new ReqeuestParam();
+        reqeuestParam.put("token", token);
+        reqeuestParam.put("keycode", signal);
+        HttpClientWrapper.getClient().post(http_url, null, reqeuestParam, new ResponseBase() {
+            @Override
+            public void onRequestSuccess(JSONObject result) {
+                if (commonKeyParse(result)) {
+                    return;
+                }
+                int code = result.optInt("code");
+                if (code == Code.Code_ok) {
+                    Logger.i(TAG, "发射成功: keycode= " + signal);
+                }
+            }
+
+            @Override
+            public void onRequestFail(int errCode, String errDes) {
+                String apIp = WifiUtil.getApIp(BaseApplication.getInstance());
+                if (errCode == -1) {
+                    Logger.i(TAG, "使用ap检查!");
+                    if (!TextUtils.equals(serverIp, apIp)) {
+                        sendSignal(apIp, signal);
+                    } else {
+                        Logger.i(TAG, "请连接设备wifi!");
+                        Messenger.sendTo(IWifiObserver.class).onNoFoundDevices();
+                    }
+                } else if (errCode == -2) {
+                    SynchronizeUtil.runMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.showToast(BaseApplication.getInstance(), "数据解析异常");
+                        }
+                    });
+                    Logger.i(TAG, "解析异常: ");
+                }
+            }
+        });
     }
 
     private void studyKey(String serverIp, String keyId) {

@@ -21,4 +21,5 @@ public interface IWifiDeviceModel extends IModel {
     void studyKey(String keyId);
 
     void endStudyKey();
+    void sendSignal(String signal);
 }

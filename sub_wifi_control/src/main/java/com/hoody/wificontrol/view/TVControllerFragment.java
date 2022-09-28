@@ -1,9 +1,11 @@
 package com.hoody.wificontrol.view;
 
+import android.app.Service;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +19,12 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hoody.annotation.model.ModelManager;
 import com.hoody.commonbase.util.ToastUtil;
+import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.wificontrol.R;
-import com.hoody.wificontrol.model.KeboardItem;
-import com.hoody.wificontrol.model.Key;
+import com.hoody.wificontrol.model.KeyboardItem;
+import com.hoody.wificontrol.model.SingleKey;
 import com.hoody.wificontrol.model.DirKeyGroup;
 import com.hoody.wificontrol.model.KeyGroup;
 import com.hoody.wificontrol.model.KeyNumGroup;
@@ -30,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TVControllerFragment extends Fragment {
-    private KeboardItem[] mItems = new KeboardItem[]{
+    private KeyboardItem[] mItems = new KeyboardItem[]{
             new DirKeyGroup(),
             new KeyNumGroup(),
     };
@@ -93,15 +97,15 @@ public class TVControllerFragment extends Fragment {
         decorH.setDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         ls_keyboard.addItemDecoration(decorH);
-        RecyclerView.Adapter adapter = new MainAdapter(new ArrayList<KeboardItem>(Arrays.asList(mItems)));
+        RecyclerView.Adapter adapter = new MainAdapter(new ArrayList<KeyboardItem>(Arrays.asList(mItems)));
         ls_keyboard.setAdapter(adapter);
     }
 
-    static class MainAdapter extends RecyclerView.Adapter {
-        private ArrayList<KeboardItem> mKeboardItems;
+    class MainAdapter extends RecyclerView.Adapter {
+        private ArrayList<KeyboardItem> mKeyboardItems;
 
-        public MainAdapter(ArrayList<KeboardItem> keboardItems) {
-            mKeboardItems = keboardItems;
+        public MainAdapter(ArrayList<KeyboardItem> keyboardItems) {
+            mKeyboardItems = keyboardItems;
         }
 
         @NonNull
@@ -114,22 +118,29 @@ public class TVControllerFragment extends Fragment {
             }
         }
 
-        KeboardItem.OnStudyListener onStudyListener = new KeboardItem.OnStudyListener() {
+        KeyboardItem.OnStudyListener onStudyListener = new KeyboardItem.OnStudyListener() {
             @Override
-            public void OnStudy(View v, Key key) {
-                ToastUtil.showToast(v.getContext(), key.getName());
+            public void OnStudy(View v, SingleKey singleKey) {
+                ToastUtil.showToast(v.getContext(), singleKey.getName());
+            }
+
+            @Override
+            public void OnClick(View v, SingleKey singleKey) {
+                Vibrator vib = (Vibrator) getContext().getSystemService(Service.VIBRATOR_SERVICE);
+                vib.vibrate(100);
+                ModelManager.getModel(IWifiDeviceModel.class).sendSignal(singleKey.getDataCode());
             }
         };
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof KeyHolder) {
-                ((KeyHolder) holder).key.setText(((Key) mKeboardItems.get(position)).getName());
+                ((KeyHolder) holder).key.setText(((SingleKey) mKeyboardItems.get(position)).getName());
             } else {
-                mKeboardItems.get(position).setOnStudyListener(onStudyListener);
-                ((KeyGroupHolder) holder).keyGroup.setAdapter(((KeyGroup) mKeboardItems.get(position)).getGroupAdapter());
-                ((KeyGroupHolder) holder).keyGroup.setLayoutManager(((KeyGroup) mKeboardItems.get(position)).getLayoutManager(holder.itemView.getContext()));
-                List<DividerItemDecoration> dividerItemDecorations = ((KeyGroup) mKeboardItems.get(position)).getDividerItemDecorations(holder.itemView.getContext());
+                mKeyboardItems.get(position).setOnStudyListener(onStudyListener);
+                ((KeyGroupHolder) holder).keyGroup.setAdapter(((KeyGroup) mKeyboardItems.get(position)).getGroupAdapter());
+                ((KeyGroupHolder) holder).keyGroup.setLayoutManager(((KeyGroup) mKeyboardItems.get(position)).getLayoutManager(holder.itemView.getContext()));
+                List<DividerItemDecoration> dividerItemDecorations = ((KeyGroup) mKeyboardItems.get(position)).getDividerItemDecorations(holder.itemView.getContext());
                 for (DividerItemDecoration dividerItemDecoration : dividerItemDecorations) {
                     if (dividerItemDecoration != null) {
                         ((KeyGroupHolder) holder).keyGroup.addItemDecoration(dividerItemDecoration);
@@ -140,19 +151,19 @@ public class TVControllerFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return mKeboardItems.size();
+            return mKeyboardItems.size();
         }
 
         @Override
         public int getItemViewType(int position) {
-            if (mKeboardItems.get(position) instanceof Key) {
+            if (mKeyboardItems.get(position) instanceof SingleKey) {
                 return 0;
             } else {
                 return 1;
             }
         }
 
-        static class KeyHolder extends RecyclerView.ViewHolder {
+        class KeyHolder extends RecyclerView.ViewHolder {
 
             private final TextView key;
 
@@ -162,7 +173,7 @@ public class TVControllerFragment extends Fragment {
             }
         }
 
-        static class KeyGroupHolder extends RecyclerView.ViewHolder {
+        class KeyGroupHolder extends RecyclerView.ViewHolder {
             private final RecyclerView keyGroup;
 
             public KeyGroupHolder(@NonNull View itemView) {

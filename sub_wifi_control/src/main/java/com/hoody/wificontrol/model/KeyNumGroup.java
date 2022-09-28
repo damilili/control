@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.hoody.commonbase.util.ToastUtil;
 import com.hoody.wificontrol.R;
 
 import java.util.ArrayList;
@@ -68,19 +67,19 @@ public class KeyNumGroup extends KeyGroup {
     }
 
     private RecyclerView.Adapter mGroupAdapter = new RecyclerView.Adapter() {
-        public Key[] mKeys = new Key[]{
-                new Key(1, "1", (byte) 49, (byte) 0x44, (byte) 0x53),
-                new Key(2, "2", (byte) 49, (byte) 0x44, (byte) 0x4b),
-                new Key(3, "3", (byte) 49, (byte) 0x44, (byte) 0x99),
-                new Key(4, "4", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(5, "5", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(6, "6", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(7, "7", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(8, "8", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(9, "9", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(10, "#", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(11, "0", (byte) 49, (byte) 0x44, (byte) 0x83),
-                new Key(11, "*", (byte) 49, (byte) 0x44, (byte) 0x83)
+        public SingleKey[] mSingleKeys = new SingleKey[]{
+                new SingleKey(1, "1", ""),
+                new SingleKey(2, "2", ""),
+                new SingleKey(3, "3", ""),
+                new SingleKey(4, "4", ""),
+                new SingleKey(5, "5", ""),
+                new SingleKey(6, "6", ""),
+                new SingleKey(7, "7", ""),
+                new SingleKey(8, "8", ""),
+                new SingleKey(9, "9", ""),
+                new SingleKey(10, "#", ""),
+                new SingleKey(11, "0", ""),
+                new SingleKey(11, "*", "")
         };
 
         @NonNull
@@ -92,15 +91,15 @@ public class KeyNumGroup extends KeyGroup {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof KeyHolder) {
-                ((KeyHolder) holder).key.setTag(mKeys[position]);
-                ((KeyHolder) holder).key.setText(mKeys[position].getName());
-                ((KeyHolder) holder).key.setEnabled(!TextUtils.isEmpty(mKeys[position].getDataCode()));
+                ((KeyHolder) holder).key.setTag(mSingleKeys[position]);
+                ((KeyHolder) holder).key.setText(mSingleKeys[position].getName());
+                ((KeyHolder) holder).key.setEnabled(!TextUtils.isEmpty(mSingleKeys[position].getDataCode()));
             }
         }
 
         @Override
         public int getItemCount() {
-            return mKeys.length;
+            return mSingleKeys.length;
         }
     };
 
@@ -114,13 +113,16 @@ public class KeyNumGroup extends KeyGroup {
                 @Override
                 public void onClick(View v) {
 
+                    if (mOnStudyListener != null) {
+                        mOnStudyListener.OnClick(v, ((SingleKey) v.getTag()));
+                    }
                 }
             });
             key.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     if (mOnStudyListener != null) {
-                        mOnStudyListener.OnStudy(v, ((Key) v.getTag()));
+                        mOnStudyListener.OnStudy(v, ((SingleKey) v.getTag()));
                     }
                     return true;
                 }

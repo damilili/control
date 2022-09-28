@@ -2,7 +2,7 @@ package com.hoody.wificontrol.model;
 
 import android.view.View;
 
-public class KeboardItem {
+public class KeyboardItem {
     public int spanSize;
     public int layoutId;
     protected OnStudyListener mOnStudyListener;
@@ -12,6 +12,7 @@ public class KeboardItem {
     }
 
     public interface OnStudyListener {
-        void OnStudy(View v,Key key);
+        void OnStudy(View v, SingleKey singleKey);
+        void OnClick(View v, SingleKey singleKey);
     }
 }
