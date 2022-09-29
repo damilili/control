@@ -149,11 +149,15 @@ void handleSendSign() {
     }
   }
   Serial.print(">>");
-  Serial.print(2);
-  Serial.print(3);
+  Serial.print((char)2);
+  Serial.print((char)3);
   Serial.write(preCode);
-  Serial.write(preCode);
+  Serial.write(userCode);
   Serial.write(dataCode);
+  //发射成功
+  jsonBuffer["code"] = Code_ok;
+  serializeJson(jsonBuffer, output);
+  srv.send(200, "text/plain", output);
 }
 /*
 路径： device/study
@@ -362,7 +366,7 @@ void handleWifi() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-    if (millis() - startMillis > 60000) {
+    if (millis() - startMillis > 10000) {
       Serial.print("-");
       jsonBuffer["code"] = Code_wifi_err;
       serializeJson(jsonBuffer, output);
@@ -410,6 +414,7 @@ void handleLogin() {
     jsonBuffer.clear();
     jsonBuffer["code"] = Code_ok;
     jsonBuffer["token"] = token;
+    jsonBuffer["wifiIp"] = WiFi.localIP();
   } else {
     jsonBuffer["code"] = Code_pass_err;
   }
