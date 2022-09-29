@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_titile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/black"
+        android:gravity="center"
+        android:paddingTop="45dp"
+        android:paddingBottom="15dp"
+        android:text="按键设置"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/et_key_name"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:layout_margin="20dp"
+        android:background="@drawable/key_back"
+        android:gravity="center"
+        android:hint="请输入按键名称"
+        android:includeFontPadding="false"
+        android:maxWidth="200dp"
+        android:minWidth="24dp"
+        android:minHeight="12dp"
+        android:padding="10dp"
+        android:textColor="@color/common_bg"
+        android:textColorHint="@color/common_bg"
+        android:textSize="20sp"
+        tools:text="1" />
+
+    <ImageView
+        android:id="@+id/iv_key_logo_left"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignTop="@+id/et_key_name"
+        android:layout_alignBottom="@+id/et_key_name"
+        android:layout_toLeftOf="@+id/et_key_name"
+        android:background="@drawable/key_back" />
+
+    <ImageView
+        android:id="@+id/iv_key_logo_right"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignTop="@+id/et_key_name"
+        android:layout_alignBottom="@+id/et_key_name"
+        android:layout_toRightOf="@+id/et_key_name"
+        android:background="@drawable/key_back" />
+
+    <ImageView
+        android:id="@+id/iv_key_logo_top"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_above="@+id/et_key_name"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/key_back" />
+
+    <ImageView
+        android:id="@+id/iv_key_logo_bottom"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/et_key_name"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/key_back" />
+
+    <Button
+        android:id="@+id/bt_sure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="40dp"
+        android:text="确     定" />
+</RelativeLayout>

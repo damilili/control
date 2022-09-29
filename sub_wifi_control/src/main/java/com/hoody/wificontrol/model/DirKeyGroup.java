@@ -71,14 +71,14 @@ public class DirKeyGroup extends KeyGroup {
     private RecyclerView.Adapter mGroupAdapter = new RecyclerView.Adapter() {
         public SingleKey[] mSingleKeys = new SingleKey[]{
                 new SingleKey(6, "菜单", ""),
-                new SingleKey(1, "上", "000000000100010001010011"),
+                new SingleKey(1, "上", "000101010100010001010011"),
                 new SingleKey(7, "首页", ""),
 //                00000000 01000100 10011001
-                new SingleKey(3, "左", "000000000100010010011001"),
+                new SingleKey(3, "左", "000101010100010010011001"),
                 new SingleKey(5, "确定", ""),
-                new SingleKey(4, "右", "000000000100010010000011"),
-                new SingleKey(8, "返回", "000000000100010010101001"),
-                new SingleKey(2, "下", "000000000100010001001011"),
+                new SingleKey(4, "右", "000101010100010010000011"),
+                new SingleKey(8, "返回", "000101010100010010101001"),
+                new SingleKey(2, "下", "000101010100010001001011"),
                 new SingleKey(8, "退出", ""),
         };
 
@@ -117,16 +117,16 @@ public class DirKeyGroup extends KeyGroup {
             key.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mOnStudyListener != null) {
-                        mOnStudyListener.OnClick(v, ((SingleKey) v.getTag()));
+                    if (mOnKeyClickListener != null) {
+                        mOnKeyClickListener.OnClick(v, ((SingleKey) v.getTag()));
                     }
                 }
             });
             key.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if (mOnStudyListener != null) {
-                        mOnStudyListener.OnStudy(v, ((SingleKey) v.getTag()));
+                    if (mOnKeyClickListener != null) {
+                        mOnKeyClickListener.OnStudy(v, ((SingleKey) v.getTag()));
                     }
                     return true;
                 }

@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hoody.annotation.model.ModelManager;
+import com.hoody.annotation.router.RouterUtil;
 import com.hoody.commonbase.util.ToastUtil;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.wificontrol.R;
@@ -118,10 +120,15 @@ public class TVControllerFragment extends Fragment {
             }
         }
 
-        KeyboardItem.OnStudyListener onStudyListener = new KeyboardItem.OnStudyListener() {
+        KeyboardItem.OnKeyClickListener onKeyClickListener = new KeyboardItem.OnKeyClickListener() {
+
+
             @Override
             public void OnStudy(View v, SingleKey singleKey) {
                 ToastUtil.showToast(v.getContext(), singleKey.getName());
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("keyBean",singleKey);
+                RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", bundle);
             }
 
             @Override
@@ -137,7 +144,7 @@ public class TVControllerFragment extends Fragment {
             if (holder instanceof KeyHolder) {
                 ((KeyHolder) holder).key.setText(((SingleKey) mKeyboardItems.get(position)).getName());
             } else {
-                mKeyboardItems.get(position).setOnStudyListener(onStudyListener);
+                mKeyboardItems.get(position).setOnStudyListener(onKeyClickListener);
                 ((KeyGroupHolder) holder).keyGroup.setAdapter(((KeyGroup) mKeyboardItems.get(position)).getGroupAdapter());
                 ((KeyGroupHolder) holder).keyGroup.setLayoutManager(((KeyGroup) mKeyboardItems.get(position)).getLayoutManager(holder.itemView.getContext()));
                 List<DividerItemDecoration> dividerItemDecorations = ((KeyGroup) mKeyboardItems.get(position)).getDividerItemDecorations(holder.itemView.getContext());

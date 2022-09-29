@@ -410,6 +410,10 @@ public class WifiDeviceModel implements IWifiDeviceModel {
                 }
                 int code = result.optInt("code");
                 if (code == 0) {
+                    String serverIp = result.optString("wifiIp");
+                    if (!TextUtils.isEmpty(serverIp)) {
+                        SharedPreferenceUtil.getInstance().saveSharedPreferences(KEY_DEVICE_SERVER_IP, serverIp);
+                    }
                     Messenger.sendTo(IWifiObserver.class).onManagerLoginSuccess();
                 } else {
                     Messenger.sendTo(IWifiObserver.class).onManagerLoginFail();

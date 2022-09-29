@@ -2,7 +2,9 @@ package com.hoody.wificontrol.model;
 
 import android.graphics.drawable.Drawable;
 
-public class SingleKey extends KeyboardItem {
+import java.io.Serializable;
+
+public class SingleKey extends KeyboardItem implements Serializable {
     public enum DrawablePos {
         top,
         bottom,

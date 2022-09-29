@@ -113,16 +113,16 @@ public class KeyNumGroup extends KeyGroup {
                 @Override
                 public void onClick(View v) {
 
-                    if (mOnStudyListener != null) {
-                        mOnStudyListener.OnClick(v, ((SingleKey) v.getTag()));
+                    if (mOnKeyClickListener != null) {
+                        mOnKeyClickListener.OnClick(v, ((SingleKey) v.getTag()));
                     }
                 }
             });
             key.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if (mOnStudyListener != null) {
-                        mOnStudyListener.OnStudy(v, ((SingleKey) v.getTag()));
+                    if (mOnKeyClickListener != null) {
+                        mOnKeyClickListener.OnStudy(v, ((SingleKey) v.getTag()));
                     }
                     return true;
                 }
