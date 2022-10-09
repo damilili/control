@@ -195,6 +195,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     public void sendSignal(String serverIp, String signal) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/sendsign", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
@@ -237,6 +240,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void studyKey(String serverIp, String keyId) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/study", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
@@ -303,6 +309,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void modifyPass(String serverIp, String oldPass, String newPass) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/modifymanagerpass", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
@@ -348,6 +357,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void setWifi(String serverIp, String wifiName, String pass) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/wifi", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();
@@ -355,7 +367,7 @@ public class WifiDeviceModel implements IWifiDeviceModel {
         reqeuestParam.put("wifiName", wifiName);
         reqeuestParam.put("pass", pass);
         ReqeuestHeader reqeuestHeader = new ReqeuestHeader();
-        reqeuestHeader.put("readTimeout","15");
+        reqeuestHeader.put("readTimeout", "15");
         HttpClientWrapper.getClient().post(http_url, reqeuestHeader, reqeuestParam, new ResponseBase() {
             @Override
             public void onRequestSuccess(JSONObject result) {
@@ -399,6 +411,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void loginManager(String serverIp, String pass) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/login", null);
         ReqeuestParam reqeuestParam = new ReqeuestParam();
         reqeuestParam.put("pass", pass);
@@ -445,6 +460,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void setManagerPass(String serverIp, String pass) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/regist", null);
         ReqeuestParam reqeuestParam = new ReqeuestParam();
         reqeuestParam.put("pass", pass);
@@ -488,6 +506,9 @@ public class WifiDeviceModel implements IWifiDeviceModel {
     }
 
     private void checkDeviceStatus(String serverIp) {
+        if (TextUtils.isEmpty(serverIp)) {
+            return;
+        }
         String http_url = UrlUtil.getHttp_Url(serverIp, "device/status", null);
         String token = SharedPreferenceUtil.getInstance().readSharedPreferences(KEY_DEVICE_SERVER_TOKEN, "");
         ReqeuestParam reqeuestParam = new ReqeuestParam();

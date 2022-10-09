@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.buttonPanel).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                RouterUtil.getInstance().navigateTo(MainActivity.this,"wificontrol/main",null);
+                RouterUtil.getInstance().navigateTo(MainActivity.this,"wificontrol/wifi",null);
             }
         });
 

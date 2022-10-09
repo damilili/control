@@ -1,6 +1,7 @@
 package com.hoody.wificontrol.model;
 
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 
 import java.io.Serializable;
 
@@ -13,6 +14,11 @@ public class SingleKey extends KeyboardItem implements Serializable {
     }
 
     public SingleKey(int id, String name, String dataCode) {
+        this.name = name;
+        this.data = dataCode;
+    }
+
+    public SingleKey(String id, String name, String dataCode) {
         this.id = id;
         this.name = name;
         this.data = dataCode;
@@ -21,12 +27,17 @@ public class SingleKey extends KeyboardItem implements Serializable {
     public SingleKey() {
     }
 
-    private int id;
+    private String id;
     private String name;
     private String data;
     private String drawable;
     private Drawable background;
     private DrawablePos drawablePos;
+    private int width;
+    private int height;
+    private int posX;
+    private int posY;
+    private int nameColor;
 
     public void setName(String name) {
         this.name = name;
@@ -57,8 +68,7 @@ public class SingleKey extends KeyboardItem implements Serializable {
     }
 
 
-
-    public int getId() {
+    public String getId() {
         return id;
     }
 
@@ -68,5 +78,37 @@ public class SingleKey extends KeyboardItem implements Serializable {
 
     public String getDataCode() {
         return data;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getPosX() {
+        return posX;
+    }
+
+    public void setPosX(int posX) {
+        this.posX = posX;
+    }
+
+    public int getPosY() {
+        return posY;
+    }
+
+    public void setPosY(int posY) {
+        this.posY = posY;
     }
 }

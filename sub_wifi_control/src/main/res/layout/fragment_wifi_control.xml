@@ -7,18 +7,19 @@
     android:background="@android:color/holo_green_dark"
     tools:context=".MainActivity">
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/controller_pager"
+    <com.hoody.commonbase.customview.ChildMoveLayout
+        android:id="@+id/free_move_base"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:background="#99F9F9" />
 
 
     <Button
         android:id="@+id/bt_set"
-        android:layout_marginTop="@android:dimen/notification_large_icon_height"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:textColor="#ffffffff"
-        android:text="设置" />
+        android:layout_marginTop="@android:dimen/notification_large_icon_height"
+        android:text="设置"
+        android:textColor="#ffffffff" />
 </RelativeLayout>
