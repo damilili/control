@@ -43,7 +43,7 @@ public interface IWifiObserver extends IMessageObserver {
     default void onStudySuccess(String keyId, String data) {
     }
 
-    default void onStudyFail(int code,String keyId) {
+    default void onStudyFail(int code, String keyId) {
     }
 
 
@@ -51,5 +51,9 @@ public interface IWifiObserver extends IMessageObserver {
     }
 
     default void onModifyWifiPassFail() {
+    }
+
+    default void onKeyInfoChanged(SingleKey key) {
+
     }
 }

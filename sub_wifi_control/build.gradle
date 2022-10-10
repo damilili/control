@@ -2,4 +2,5 @@ ext {packageName = "com.hoody.wificontrol"}
 apply from: "../SubModuleTamplate/sub_module.gradle"
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "com.github.duanhong169:colorpicker:1.1.6"
 }

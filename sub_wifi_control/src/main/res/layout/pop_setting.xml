@@ -29,6 +29,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/bt_set_wifi"
-        android:text="按键学习" />
-
+        android:text="按键设置" />
+    <Button
+        android:id="@+id/bt_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bt_set_wifi"
+        android:text="添加按键" />
 </LinearLayout>

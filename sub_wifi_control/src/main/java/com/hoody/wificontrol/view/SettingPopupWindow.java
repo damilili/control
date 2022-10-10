@@ -20,6 +20,7 @@ public class SettingPopupWindow extends PopupWindow {
     public static final String ITEM_RESET_PASS = "ITEM_RESET_PASS";
     public static final String ITEM_SET_WIFI = "ITEM_SET_WIFI";
     public static final String ITEM_STUDY = "ITEM_STUDY";
+    public static final String ITEM_ADD = "ITEM_ADD";
     private View.OnClickListener mOnClickListener;
     private View.OnClickListener mListenerProxy = new View.OnClickListener() {
         @Override
@@ -51,6 +52,10 @@ public class SettingPopupWindow extends PopupWindow {
         View study = popView.findViewById(R.id.bt_study);
         study.setTag(ITEM_STUDY);
         study.setOnClickListener(mListenerProxy);
+
+        View bt_add = popView.findViewById(R.id.bt_add);
+        bt_add.setTag(ITEM_ADD);
+        bt_add.setOnClickListener(mListenerProxy);
         setOutsideTouchable(true);
         setFocusable(true);
     }

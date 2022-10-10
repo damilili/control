@@ -1,5 +1,8 @@
 package com.hoody.commonbase.customview;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
@@ -29,6 +32,7 @@ public class ChildMoveLayout extends FrameLayout {
     private static final int SPLIT_COUNT = 24;
     public static final int SPLIT_LENGTH = DeviceInfo.WIDTH / SPLIT_COUNT;
     private Rect mRect;
+    private ValueAnimator mChildAnimator;
 
     public ChildMoveLayout(@NonNull Context context) {
         super(context);
@@ -145,6 +149,47 @@ public class ChildMoveLayout extends FrameLayout {
                 mPaint.setStyle(style);
             }
         }
+    }
+
+    public void stopAnim() {
+        if (mChildAnimator != null) {
+            mChildAnimator.cancel();
+        }
+    }
+
+    public void startAnim() {
+        mChildAnimator = ValueAnimator.ofFloat(0, 3f, 0, -3f);
+        mChildAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                for (int i = 0; i < getChildCount(); i++) {
+                    getChildAt(i).setRotation((Float) animation.getAnimatedValue());
+                }
+            }
+        });
+        mChildAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (mChildAnimator != null) {
+                    mChildAnimator.start();
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                for (int i = 0; i < getChildCount(); i++) {
+                    getChildAt(i).setRotation(0);
+                }
+                mChildAnimator = null;
+            }
+        });
+        mChildAnimator.setDuration(200);
+        mChildAnimator.start();
     }
 
     private OnViewPositionChangeedListener mOnViewPositionChangeedListener;

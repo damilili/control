@@ -1,17 +1,12 @@
-package com.hoody.wificontrol.model;
+package com.hoody.model.wificontrol;
 
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
+import android.graphics.Color;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 
 public class SingleKey extends KeyboardItem implements Serializable {
-    public enum DrawablePos {
-        top,
-        bottom,
-        right,
-        left
-    }
+    public static final int MaxTextSize = 35;
 
     public SingleKey(int id, String name, String dataCode) {
         this.name = name;
@@ -24,20 +19,17 @@ public class SingleKey extends KeyboardItem implements Serializable {
         this.data = dataCode;
     }
 
-    public SingleKey() {
-    }
-
     private String id;
     private String name;
     private String data;
     private String drawable;
-    private Drawable background;
-    private DrawablePos drawablePos;
+    private int backgroundColor = Color.GRAY;
     private int width;
     private int height;
     private int posX;
     private int posY;
-    private int nameColor;
+    private int textColor = Color.WHITE;
+    private int textSize = MaxTextSize / 2;
 
     public void setName(String name) {
         this.name = name;
@@ -51,22 +43,13 @@ public class SingleKey extends KeyboardItem implements Serializable {
         this.drawable = drawable;
     }
 
-    public Drawable getBackground() {
-        return background;
+    public int getBackgroundColor() {
+        return backgroundColor;
     }
 
-    public void setBackground(Drawable background) {
-        this.background = background;
+    public void setBackgroundColor(int color) {
+        this.backgroundColor = color;
     }
-
-    public DrawablePos getDrawablePos() {
-        return drawablePos;
-    }
-
-    public void setDrawablePos(DrawablePos drawablePos) {
-        this.drawablePos = drawablePos;
-    }
-
 
     public String getId() {
         return id;
@@ -110,5 +93,31 @@ public class SingleKey extends KeyboardItem implements Serializable {
 
     public void setPosY(int posY) {
         this.posY = posY;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public int getTextSize() {
+        return textSize;
+    }
+
+    public void setTextSize(int textSize) {
+        this.textSize = textSize;
+    }
+
+    public void copy(SingleKey key) {
+        try {
+            for (Field declaredField : getClass().getDeclaredFields()) {
+                declaredField.set(this, declaredField.get(key));
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }

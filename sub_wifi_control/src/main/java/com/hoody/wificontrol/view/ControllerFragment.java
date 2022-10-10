@@ -20,8 +20,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.hoody.wificontrol.model.KeyboardItem;
-import com.hoody.wificontrol.model.SingleKey;
+import com.hoody.model.wificontrol.KeyboardItem;
+import com.hoody.model.wificontrol.SingleKey;
 import com.hoody.wificontrol.model.DirKeyGroup;
 import com.hoody.wificontrol.model.KeyNumGroup;
 import com.hoody.wificontrol.R;

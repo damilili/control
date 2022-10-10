@@ -28,12 +28,14 @@
         android:layout_margin="20dp"
         android:background="@drawable/key_back"
         android:gravity="center"
-        android:hint="请输入按键名称"
+        android:hint="?"
         android:includeFontPadding="false"
         android:maxWidth="200dp"
         android:minWidth="24dp"
         android:minHeight="12dp"
-        android:padding="10dp"
+        android:lines="1"
+        android:padding="0dp"
+        android:singleLine="true"
         android:textColor="@color/common_bg"
         android:textColorHint="@color/common_bg"
         android:textSize="20sp"
@@ -73,12 +75,88 @@
         android:layout_centerHorizontal="true"
         android:background="@drawable/key_back" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seek_key_height"
+        android:layout_alignLeft="@+id/seek_key_height"
+        android:layout_alignRight="@+id/seek_key_height"
+        android:gravity="center"
+        android:text="高" />
+
+    <com.hoody.commonbase.customview.VerticalSeekBar
+        android:id="@+id/seek_key_height"
+        android:layout_width="wrap_content"
+        android:layout_height="240dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:max="5"
+        tools:text="1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/seek_key_width"
+        android:layout_alignBottom="@+id/seek_key_width"
+        android:layout_toLeftOf="@+id/seek_key_width"
+        android:gravity="center"
+        android:text="宽" />
+
+    <SeekBar
+        android:id="@+id/seek_key_width"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_titile"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:max="5"
+        tools:text="1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/seek_key_text_size"
+        android:layout_alignLeft="@+id/seek_key_text_size"
+        android:layout_alignRight="@+id/seek_key_text_size"
+        android:gravity="center"
+        android:text="文字" />
+
+    <com.hoody.commonbase.customview.VerticalSeekBar
+        android:id="@+id/seek_key_text_size"
+        android:layout_width="wrap_content"
+        android:layout_height="240dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="20dp"
+        android:max="30"
+        tools:text="1" />
+
     <Button
-        android:id="@+id/bt_sure"
+        android:id="@+id/bt_back_color"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:text="背景色" />
+
+    <Button
+        android:id="@+id/bt_text_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:layout_toRightOf="@+id/bt_back_color"
+        android:text="字体色" />
+
+    <Button
+        android:id="@+id/bt_sure"
+        android:layout_toRightOf="@+id/bt_text_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="40dp"

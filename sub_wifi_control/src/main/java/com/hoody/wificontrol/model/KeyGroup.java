@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hoody.model.wificontrol.KeyboardItem;
+
 import java.util.List;
 
 public abstract class KeyGroup extends KeyboardItem {

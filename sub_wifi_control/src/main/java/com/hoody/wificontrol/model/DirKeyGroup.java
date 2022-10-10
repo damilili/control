@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hoody.model.wificontrol.SingleKey;
 import com.hoody.wificontrol.R;
 
 import java.util.ArrayList;

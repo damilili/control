@@ -1,6 +1,8 @@
-package com.hoody.wificontrol.model;
+package com.hoody.model.wificontrol;
 
 import android.view.View;
+
+import com.hoody.model.wificontrol.SingleKey;
 
 public class KeyboardItem {
     public int spanSize;

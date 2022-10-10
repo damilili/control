@@ -8,6 +8,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,7 @@ import androidx.annotation.Nullable;
 import com.hoody.annotation.model.ModelManager;
 import com.hoody.annotation.permission.Permissions;
 import com.hoody.annotation.router.Router;
+import com.hoody.annotation.router.RouterUtil;
 import com.hoody.commonbase.customview.ChildMoveLayout;
 import com.hoody.commonbase.customview.slidedecidable.SlideDecidableLayout;
 import com.hoody.commonbase.customview.slidedecidable.SwipeBackLayout;
@@ -32,8 +34,7 @@ import com.hoody.commonbase.view.fragment.SwipeBackFragment;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.wificontrol.IWifiObserver;
 import com.hoody.wificontrol.R;
-import com.hoody.wificontrol.model.KeyboardItem;
-import com.hoody.wificontrol.model.SingleKey;
+import com.hoody.model.wificontrol.SingleKey;
 import com.hoody.wificontrol.model.WifiDeviceModel;
 
 import org.json.JSONArray;
@@ -61,7 +62,14 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
         @Override
         public void onClick(View v) {
             if (mEditMode) {
-
+                mEditMode = false;
+                mFreeMoveBase.stopAnim();
+                Object tag = v.getTag();
+                if (tag instanceof SingleKey) {
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("keyBean", (SingleKey) tag);
+                    RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", bundle);
+                }
             }
         }
     };
@@ -69,7 +77,6 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
 
     @Override
     protected void onClose() {
-
         JSONObject jsonObject = new JSONObject();
         JSONArray datas = new JSONArray();
         try {
@@ -170,18 +177,36 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
         //填充数据
         for (SingleKey key : mKeys) {
             Button button = new Button(getContext());
-            button.setText(key.getName());
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ChildMoveLayout.SPLIT_LENGTH * key.getWidth(), ChildMoveLayout.SPLIT_LENGTH * key.getHeight());
-            button.setY(key.getPosY() * ChildMoveLayout.SPLIT_LENGTH);
-            button.setX(key.getPosX() * ChildMoveLayout.SPLIT_LENGTH);
-            button.setTag(key);
-            button.setBackgroundColor(Color.GREEN);
-            button.setOnClickListener(mOnKeyClickListener);
-            mFreeMoveBase.addView(button, layoutParams);
+            button.setSingleLine();
+            bindKeyInfo(key, button);
+            mFreeMoveBase.addView(button);
         }
         mObserverRegister.regist(this);
         //检查设备状态
         ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
+    }
+
+    private void bindKeyInfo(SingleKey key, Button button) {
+        button.setTag(key);
+        button.setOnClickListener(mOnKeyClickListener);
+
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) button.getLayoutParams();
+        if (layoutParams == null) {
+            layoutParams = new FrameLayout.LayoutParams(ChildMoveLayout.SPLIT_LENGTH * key.getWidth(), ChildMoveLayout.SPLIT_LENGTH * key.getHeight());
+
+        }
+        layoutParams.width = ChildMoveLayout.SPLIT_LENGTH * key.getWidth();
+        layoutParams.height = ChildMoveLayout.SPLIT_LENGTH * key.getHeight();
+        button.setLayoutParams(layoutParams);
+
+        button.setText(key.getName());
+        button.setY(key.getPosY() * ChildMoveLayout.SPLIT_LENGTH);
+        button.setX(key.getPosX() * ChildMoveLayout.SPLIT_LENGTH);
+        button.setTextColor(key.getTextColor());
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, key.getTextSize());
+        button.setBackgroundColor(key.getBackgroundColor());
+        button.setPadding(0, 0, 0, 0);
+
     }
 
     private void initView() {
@@ -214,10 +239,35 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
         findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mEditMode = !mEditMode;
-                if (v instanceof Button) {
-                    ((Button) v).setText(mEditMode ? "确定" : "设置");
-                }
+                SettingPopupWindow settingPopupWindow = new SettingPopupWindow(getContext());
+                settingPopupWindow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        settingPopupWindow.dismiss();
+                        switch (((String) v.getTag())) {
+                            case SettingPopupWindow.ITEM_SET_WIFI_PASS:
+                                mDeviceWifiPassInputPopupWindow = new DeviceWifiPassInputPopupWindow(getContext());
+                                mDeviceWifiPassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+                                break;
+                            case SettingPopupWindow.ITEM_SET_WIFI:
+                                showWifiSet();
+                                break;
+                            case SettingPopupWindow.ITEM_RESET_PASS:
+                                DevicePassResetPopupWindow devicePassResetPopupWindow = new DevicePassResetPopupWindow(getContext());
+                                devicePassResetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
+                                break;
+                            case SettingPopupWindow.ITEM_STUDY:
+                                mEditMode = true;
+                                mFreeMoveBase.startAnim();
+                                ModelManager.getModel(IWifiDeviceModel.class).studyKey("123");
+                                break;
+                            case SettingPopupWindow.ITEM_ADD:
+                                RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", null);
+                                break;
+                        }
+                    }
+                });
+                settingPopupWindow.showAsDropDown(v);
             }
         });
     }
@@ -340,5 +390,28 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
     @Override
     public void onModifyWifiPassFail() {
         ToastUtil.showToast(getContext(), "修改失败，密码长度8-20位");
+    }
+
+    @Override
+    public void onKeyInfoChanged(SingleKey key) {
+        for (int i = 0; i < mFreeMoveBase.getChildCount(); i++) {
+            View child = mFreeMoveBase.getChildAt(i);
+            Object tag = child.getTag();
+            if (tag instanceof SingleKey) {
+                if (((SingleKey) tag).getId().equals(key.getId())) {
+                    ((SingleKey) tag).copy(key);
+                    if (child instanceof Button) {
+                        bindKeyInfo(key, (Button) child);
+                    }
+                    return;
+                }
+            }
+        }
+
+        mKeys.add(key);
+        Button button = new Button(getContext());
+        button.setSingleLine();
+        bindKeyInfo(key, button);
+        mFreeMoveBase.addView(button);
     }
 }
