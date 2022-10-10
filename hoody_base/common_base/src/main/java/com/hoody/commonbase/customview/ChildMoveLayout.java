@@ -21,6 +21,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.util.DeviceInfo;
 
 
@@ -33,6 +34,7 @@ public class ChildMoveLayout extends FrameLayout {
     public static final int SPLIT_LENGTH = DeviceInfo.WIDTH / SPLIT_COUNT;
     private Rect mRect;
     private ValueAnimator mChildAnimator;
+    private boolean mChildDragEnable = false;
 
     public ChildMoveLayout(@NonNull Context context) {
         super(context);
@@ -60,8 +62,10 @@ public class ChildMoveLayout extends FrameLayout {
         mPaint.setColor(Color.BLUE);
         setWillNotDraw(false);
         setOnDragListener(new View.OnDragListener() {
+            int lastAction;
             @Override
             public boolean onDrag(View v, DragEvent event) {
+                Logger.i(TAG, "aaaaaaaaaaa: " + event.getAction());
                 View dragView = (View) event.getLocalState();
                 switch (event.getAction()) {
                     case DragEvent.ACTION_DRAG_STARTED:
@@ -71,8 +75,10 @@ public class ChildMoveLayout extends FrameLayout {
                         getRect(event, dragView);
                         invalidate();
                         break;
-                    case DragEvent.ACTION_DROP:
-                        getRect(event, dragView);
+                    case DragEvent.ACTION_DRAG_ENDED:
+                        if (lastAction == DragEvent.ACTION_DRAG_EXITED) {
+                            getRect(event, dragView);
+                        }
                         dragView.setX(mRect.left);
                         dragView.setY(mRect.top);
                         dragView.setVisibility(View.VISIBLE);
@@ -81,9 +87,13 @@ public class ChildMoveLayout extends FrameLayout {
                         }
                         mTargetView = null;
                         break;
+                    case DragEvent.ACTION_DROP:
+                        getRect(event, dragView);
+                        break;
                     default:
                         break;
                 }
+                lastAction = event.getAction();
                 return true;
             }
 
@@ -94,8 +104,26 @@ public class ChildMoveLayout extends FrameLayout {
                 int x2 = (int) (x + dragView.getWidth()) / SPLIT_LENGTH * SPLIT_LENGTH + SPLIT_LENGTH;
                 int y1 = (int) y / SPLIT_LENGTH * SPLIT_LENGTH;
                 if (x - x1 < x2 - (x + dragView.getWidth())) {
+                    x1 = Math.max(0, x1);
+                    y1 = Math.max(0, y1);
+                    if (x1 + dragView.getWidth() > getWidth()) {
+                        x1 = getWidth() - dragView.getWidth();
+                    }
+                    if (y1 + dragView.getHeight() > getHeight()) {
+                        y1 = getHeight() - dragView.getHeight();
+                    }
                     mRect.set(x1, y1, x1 + dragView.getWidth(), y1 + dragView.getHeight());
                 } else {
+                    if (x2 - dragView.getWidth() < 0) {
+                        x2 = dragView.getWidth();
+                    }
+                    y1 = Math.max(0, y1);
+                    if (x2 > getWidth()) {
+                        x2 = getWidth();
+                    }
+                    if (y1 + dragView.getHeight() > getHeight()) {
+                        y1 = getHeight() - dragView.getHeight();
+                    }
                     mRect.set(x2 - dragView.getWidth(), y1, x2, y1 + dragView.getHeight());
                 }
             }
@@ -105,16 +133,19 @@ public class ChildMoveLayout extends FrameLayout {
     private OnLongClickListener mOnChildLongClickListener = new OnLongClickListener() {
         @Override
         public boolean onLongClick(View v) {
-            DragShadowBuilder builder = new DragShadowBuilder(v);
-            ClipData.Item clipDataItem = new ClipData.Item("111");
-            ClipData clipData = new ClipData("111", new String[]{ClipDescription.MIMETYPE_TEXT_PLAIN}, clipDataItem);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                v.startDragAndDrop(clipData, builder, v, 0);
-            } else {
-                v.startDrag(clipData, builder, v, 0);
+            if (mChildDragEnable) {
+                DragShadowBuilder builder = new DragShadowBuilder(v);
+                ClipData.Item clipDataItem = new ClipData.Item("111");
+                ClipData clipData = new ClipData("111", new String[]{ClipDescription.MIMETYPE_TEXT_PLAIN}, clipDataItem);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    v.startDragAndDrop(clipData, builder, v, 0);
+                } else {
+                    v.startDrag(clipData, builder, v, 0);
+                }
+                mTargetView = v;
+                return true;
             }
-            mTargetView = v;
-            return true;
+            return false;
         }
     };
 
@@ -190,6 +221,10 @@ public class ChildMoveLayout extends FrameLayout {
         });
         mChildAnimator.setDuration(200);
         mChildAnimator.start();
+    }
+
+    public void setChildDragEnable(boolean childDragEnable) {
+        mChildDragEnable = childDragEnable;
     }
 
     private OnViewPositionChangeedListener mOnViewPositionChangeedListener;

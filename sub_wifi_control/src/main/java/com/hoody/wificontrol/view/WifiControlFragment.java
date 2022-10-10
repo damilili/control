@@ -1,20 +1,20 @@
 package com.hoody.wificontrol.view;
 
 import android.Manifest;
-import android.content.Context;
-import android.graphics.Color;
+import android.app.Service;
 import android.graphics.PointF;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,13 +26,13 @@ import com.hoody.annotation.router.RouterUtil;
 import com.hoody.commonbase.customview.ChildMoveLayout;
 import com.hoody.commonbase.customview.slidedecidable.SlideDecidableLayout;
 import com.hoody.commonbase.customview.slidedecidable.SwipeBackLayout;
-import com.hoody.commonbase.log.Logger;
 import com.hoody.commonbase.util.DeviceInfo;
 import com.hoody.commonbase.util.SharedPreferenceUtil;
 import com.hoody.commonbase.util.ToastUtil;
 import com.hoody.commonbase.view.fragment.SwipeBackFragment;
 import com.hoody.model.wificontrol.IWifiDeviceModel;
 import com.hoody.model.wificontrol.IWifiObserver;
+import com.hoody.wificontrol.MainActivity;
 import com.hoody.wificontrol.R;
 import com.hoody.model.wificontrol.SingleKey;
 import com.hoody.wificontrol.model.WifiDeviceModel;
@@ -53,30 +53,75 @@ import java.util.ArrayList;
 public class WifiControlFragment extends SwipeBackFragment implements IWifiObserver {
     private static final String TAG = "MainFragment";
     public static final String Data_TAG = "MainFragment";
-    private DevicePassSetPopupWindow mDevicePassSetPopupWindow;
-    private DevicePassInputPopupWindow mDevicePassInputPopupWindow;
-    private WifiListPopupWindow mWifiListPopupWindow;
-    private DeviceWifiPassInputPopupWindow mDeviceWifiPassInputPopupWindow;
+
     private ChildMoveLayout mFreeMoveBase;
     private View.OnClickListener mOnKeyClickListener = new View.OnClickListener() {
+
         @Override
         public void onClick(View v) {
-            if (mEditMode) {
-                mEditMode = false;
-                mFreeMoveBase.stopAnim();
-                Object tag = v.getTag();
-                if (tag instanceof SingleKey) {
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("keyBean", (SingleKey) tag);
-                    RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", bundle);
+            if (mKeyPopupWindow != null) {
+                if (mKeyPopupWindow.isShowing()) {
+                    mKeyPopupWindow.dismiss();
                 }
+            }
+            if (mEditMode) {
+                Object tag = v.getTag();
+                mKeyPopupWindow = new PopupWindow(getContext());
+                mKeyPopupWindow.setOutsideTouchable(true);
+                mKeyPopupWindow.setContentView(View.inflate(getContext(), R.layout.pop_key_setting, null));
+                int windowWidth = (int) DeviceInfo.dp2px(getContext(), 100);
+                mKeyPopupWindow.setWidth(windowWidth);
+                mKeyPopupWindow.setHeight(windowWidth);
+                mKeyPopupWindow.getContentView().findViewById(R.id.bt_reset).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mKeyPopupWindow.dismiss();
+                        if (tag instanceof SingleKey) {
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("keyBean", (SingleKey) tag);
+                            RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", bundle);
+                        }
+                    }
+                });
+                mKeyPopupWindow.getContentView().findViewById(R.id.bt_del_key).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mKeyPopupWindow.dismiss();
+                        if (tag instanceof SingleKey) {
+                            for (int i = 0; i < mFreeMoveBase.getChildCount(); i++) {
+                                View child = mFreeMoveBase.getChildAt(i);
+                                Object childTag = child.getTag();
+                                if (childTag instanceof SingleKey) {
+                                    if (((SingleKey) tag).getId().equals(((SingleKey) childTag).getId())) {
+                                        mKeys.remove(tag);
+                                        mFreeMoveBase.removeView(child);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                int yoff = 0;
+                if (v.getBottom() + windowWidth > mFreeMoveBase.getHeight()) {
+                    yoff = -v.getHeight() - windowWidth;
+                }
+                mKeyPopupWindow.showAsDropDown(v, 0, yoff, Gravity.CENTER);
+            } else {
+                Vibrator vib = (Vibrator) getContext().getSystemService(Service.VIBRATOR_SERVICE);
+                vib.vibrate(100);
             }
         }
     };
     private boolean mEditMode = false;
+    private PopupWindow mKeyPopupWindow;
 
     @Override
     protected void onClose() {
+
+    }
+
+    private void saveKeyInfo() {
         JSONObject jsonObject = new JSONObject();
         JSONArray datas = new JSONArray();
         try {
@@ -88,6 +133,9 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
                 jsonKey.putOpt("pos_y", key.getPosY());
                 jsonKey.putOpt("width", key.getWidth());
                 jsonKey.putOpt("height", key.getHeight());
+                jsonKey.putOpt("backgroundColor", key.getBackgroundColor());
+                jsonKey.putOpt("textColor", key.getTextColor());
+                jsonKey.putOpt("textSize", key.getTextSize());
                 jsonKey.putOpt("data", key.getDataCode());
                 datas.put(jsonKey);
             }
@@ -162,12 +210,18 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
                 int pos_y = jsonKey.optInt("pos_y");
                 int width = jsonKey.optInt("width");
                 int height = jsonKey.optInt("height");
+                int backgroundColor = jsonKey.optInt("backgroundColor");
+                int textColor = jsonKey.optInt("textColor");
+                int textSize = jsonKey.optInt("textSize");
                 String data = jsonKey.optString("data");
                 SingleKey singleKey = new SingleKey(id, name, data);
                 singleKey.setPosX(pos_x);
                 singleKey.setPosY(pos_y);
                 singleKey.setWidth(width);
                 singleKey.setHeight(height);
+                singleKey.setTextColor(textColor);
+                singleKey.setTextSize(textSize);
+                singleKey.setBackgroundColor(backgroundColor);
                 mKeys.add(singleKey);
             }
         } catch (JSONException e) {
@@ -189,7 +243,17 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
     private void bindKeyInfo(SingleKey key, Button button) {
         button.setTag(key);
         button.setOnClickListener(mOnKeyClickListener);
-
+        button.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (mKeyPopupWindow != null) {
+                    if (mKeyPopupWindow.isShowing()) {
+                        mKeyPopupWindow.dismiss();
+                    }
+                }
+                return false;
+            }
+        });
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) button.getLayoutParams();
         if (layoutParams == null) {
             layoutParams = new FrameLayout.LayoutParams(ChildMoveLayout.SPLIT_LENGTH * key.getWidth(), ChildMoveLayout.SPLIT_LENGTH * key.getHeight());
@@ -236,126 +300,40 @@ public class WifiControlFragment extends SwipeBackFragment implements IWifiObser
                 }
             }
         });
-        findViewById(R.id.bt_set).setOnClickListener(new View.OnClickListener() {
+        Bundle arguments = getArguments();
+        if (arguments.getInt("forset") == 1) {
+            mEditMode = true;
+            mFreeMoveBase.startAnim();
+            mFreeMoveBase.setChildDragEnable(true);
+        }
+        findViewById(R.id.ll_bottom).setVisibility(mEditMode ? View.VISIBLE : View.GONE);
+        findViewById(R.id.bt_sure).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SettingPopupWindow settingPopupWindow = new SettingPopupWindow(getContext());
-                settingPopupWindow.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        settingPopupWindow.dismiss();
-                        switch (((String) v.getTag())) {
-                            case SettingPopupWindow.ITEM_SET_WIFI_PASS:
-                                mDeviceWifiPassInputPopupWindow = new DeviceWifiPassInputPopupWindow(getContext());
-                                mDeviceWifiPassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-                                break;
-                            case SettingPopupWindow.ITEM_SET_WIFI:
-                                showWifiSet();
-                                break;
-                            case SettingPopupWindow.ITEM_RESET_PASS:
-                                DevicePassResetPopupWindow devicePassResetPopupWindow = new DevicePassResetPopupWindow(getContext());
-                                devicePassResetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-                                break;
-                            case SettingPopupWindow.ITEM_STUDY:
-                                mEditMode = true;
-                                mFreeMoveBase.startAnim();
-                                ModelManager.getModel(IWifiDeviceModel.class).studyKey("123");
-                                break;
-                            case SettingPopupWindow.ITEM_ADD:
-                                RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", null);
-                                break;
-                        }
+                if (mKeyPopupWindow != null) {
+                    if (mKeyPopupWindow.isShowing()) {
+                        mKeyPopupWindow.dismiss();
                     }
-                });
-                settingPopupWindow.showAsDropDown(v);
+                }
+                mEditMode = false;
+                mFreeMoveBase.stopAnim();
+                mFreeMoveBase.setChildDragEnable(false);
+                findViewById(R.id.ll_bottom).setVisibility(View.GONE);
+                saveKeyInfo();
+            }
+        });
+        findViewById(R.id.bt_add).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RouterUtil.getInstance().navigateTo(getContext(), "wifi/keyset", null);
             }
         });
     }
 
-    private void showWifiSet() {
-        mWifiListPopupWindow = new WifiListPopupWindow(getContext());
-        mWifiListPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
-        mWifiListPopupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mWifiListPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-        mWifiListPopupWindow.setOnItemClickListener(new WifiListPopupWindow.OnItemClickListener() {
-            @Override
-            public void onItemClick(ScanResult scanResult) {
-                mWifiListPopupWindow.dismiss();
-                WifiPassInputPopupWindow wifiPassInputPopupWindow = new WifiPassInputPopupWindow(getContext());
-                wifiPassInputPopupWindow.setWifiName(scanResult.SSID);
-                wifiPassInputPopupWindow.setWidth(DeviceInfo.ScreenWidth() / 2);
-                wifiPassInputPopupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-                wifiPassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-            }
-        });
-        WifiManager wifiManager = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (!wifiManager.isWifiEnabled()) {
-            //开启wifi
-            wifiManager.setWifiEnabled(true);
-        }
-        boolean b = wifiManager.startScan();
-        Logger.i(TAG, "startScan: " + b);
-    }
 
     @Override
     public void onNoFoundDevices() {
         ToastUtil.showToast(getContext(), "没有发现设备");
-    }
-
-    @Override
-    public void onManagerPassSetSuccess() {
-        ToastUtil.showToast(getContext(), "设置成功");
-        if (mDevicePassSetPopupWindow != null) {
-            mDevicePassSetPopupWindow.dismiss();
-        }
-        ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
-    }
-
-    @Override
-    public void onDeviceManagerPassNull() {
-        mDevicePassSetPopupWindow = new DevicePassSetPopupWindow(getContext());
-        mDevicePassSetPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-    }
-
-    @Override
-    public void onDeviceManagerPassErr() {
-        mDevicePassInputPopupWindow = new DevicePassInputPopupWindow(getContext());
-        mDevicePassInputPopupWindow.showAtLocation(getView(), Gravity.CENTER, 0, 0);
-    }
-
-    @Override
-    public void onWifiNull() {
-        showWifiSet();
-    }
-
-    @Override
-    public void onWifiErr() {
-        ToastUtil.showToast(getContext(), "wifi连接失败，请重新选择");
-        showWifiSet();
-    }
-
-    @Override
-    public void onManagerLoginSuccess() {
-        if (mDevicePassInputPopupWindow != null) {
-            mDevicePassInputPopupWindow.dismiss();
-        }
-        ToastUtil.showToast(getContext(), "认证成功");
-        ModelManager.getModel(IWifiDeviceModel.class).checkDeviceStatus();
-    }
-
-    @Override
-    public void onManagerLoginFail() {
-        ToastUtil.showToast(getContext(), "登录认证失败");
-    }
-
-    @Override
-    public void onSetWifiSuccess() {
-        ToastUtil.showToast(getContext(), "wifi设置成功");
-    }
-
-    @Override
-    public void onManagerPassResetFail() {
-        ToastUtil.showToast(getContext(), "密码修改失败");
     }
 
     @Override
